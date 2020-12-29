@@ -1,6 +1,7 @@
 package de.b33fb0n3.bungeesystem;
 
 import de.b33fb0n3.bungeesystem.utils.ConnectionPoolFactory;
+import de.b33fb0n3.bungeesystem.utils.Updater;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -58,6 +59,7 @@ public class Bungeesystem extends Plugin {
 
         ConnectionPoolFactory connectionPool = new ConnectionPoolFactory(mysqlConfig);
 
+        // mysql connect
         try {
             dataSource = connectionPool.getPluginDataSource(this);
         } catch (SQLException e) {
@@ -66,6 +68,17 @@ public class Bungeesystem extends Plugin {
             getProxy().getPluginManager().unregisterCommands(this);
             onDisable();
             return;
+        }
+
+        // check update
+        Updater updater = new Updater(this);
+        if (updater.ckeckUpdate() == 0) {
+            getLogger().info("§7Du bist auf der neusten Version!");
+        } else if (updater.ckeckUpdate() == 1) {
+            getLogger().info("§aEine neue Version hier verfügbar: \n§bhttps://www.spigotmc.org/resources/bungeesystem-%E2%98%85-ban-mute-report-warn-kick-%E2%98%85-mysql.67179/updates");
+            updater.setUpdate(true);
+        } else {
+            getLogger().info("§cUpdater konnte keine Verbingung herstellen §7(§cmögl. Dev Build§7)");
         }
 
         getLogger().info( "Bungeesystem wurde aktiviert!");
@@ -103,10 +116,10 @@ public class Bungeesystem extends Plugin {
     }
 
     private void registerCommands() {
-        if (settings.getBoolean("Toggler.report")) {
-            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
-            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
-        }
+//        if (settings.getBoolean("Toggler.report")) {
+//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
+//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
+//        }
 //
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
@@ -433,9 +446,9 @@ public class Bungeesystem extends Plugin {
             }
             raenge = ConfigurationProvider.getProvider(YamlConfiguration.class).load(raengeFile);
         } catch (IOException | NullPointerException e) {
-            System.out.println("[Report] Config-Fehler: " + e.getMessage());
+            getLogger().log(Level.WARNING,"failed to create config", e);
         }
 
-        getLogger().info("§dConfigs geladen!");
+        getLogger().info("Configs geladen!");
     }
 }
