@@ -1,7 +1,12 @@
 package de.b33fb0n3.bungeesystem;
 
+import de.b33fb0n3.bungeesystem.commands.Report;
+import de.b33fb0n3.bungeesystem.commands.Reports;
+import de.b33fb0n3.bungeesystem.listener.Login;
 import de.b33fb0n3.bungeesystem.utils.ConnectionPoolFactory;
+import de.b33fb0n3.bungeesystem.utils.ReportManager;
 import de.b33fb0n3.bungeesystem.utils.Updater;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -15,6 +20,10 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +40,13 @@ public class Bungeesystem extends Plugin {
 
     private static Bungeesystem plugin;
     public static String Prefix = "§bB33fb0n3§4.net §7| §a";
+    public static String noPerm = Prefix + "§cDazu hast du keine Rechte!";
+    public static String normal = "&a";
+    public static String fehler = "&c";
+    public static String herH = "&b";
+    public static String other = "&e";
+    public static String other2 = "&7";
+    public static String helpMessage = "";
     public static Configuration mysqlConfig;
     public static Configuration ban;
     public static Configuration settings;
@@ -38,25 +54,32 @@ public class Bungeesystem extends Plugin {
     public static Configuration blacklist;
     public static Configuration raenge;
     public static Configuration standardBans;
+    public static File cooldownsFile;
     private DataSource dataSource;
 
     public static Logger logger() {
         return plugin.getLogger();
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public static Bungeesystem getPlugin() {
+        return plugin;
+    }
+
     @Override
     public void onEnable() {
         plugin = this;
 
-        int pluginId = 9816;
-        Metrics metrics = new Metrics(this, pluginId);
+        Metrics metrics = new Metrics(this, 9816);
 
         getLogger().info( "[]=======================[]");
         getLogger().info( "						 ");
         getLogger().info( "Coded by: B33fb0n3YT");
 
         loadConfig();
-
         ConnectionPoolFactory connectionPool = new ConnectionPoolFactory(mysqlConfig);
 
         // mysql connect
@@ -81,6 +104,22 @@ public class Bungeesystem extends Plugin {
             getLogger().info("§cUpdater konnte keine Verbingung herstellen §7(§cmögl. Dev Build§7)");
         }
 
+        // load color codes from config
+        try {
+            normal = settings.getString("ChatColor.normal").replace("&", "§");
+            fehler = settings.getString("ChatColor.fehler").replace("&", "§");
+            herH = settings.getString("ChatColor.hervorhebung").replace("&", "§");
+            other = settings.getString("ChatColor.other").replace("&", "§");
+            other2 = settings.getString("ChatColor.other2").replace("&", "§");
+
+            Prefix = settings.getString("Prefix").replace("&", "§") + normal;
+            noPerm = settings.getString("NoPerm").replace("&", "§");
+            helpMessage = ChatColor.translateAlternateColorCodes('&', Prefix + fehler + "Benutze: " + other + "/bhelp %begriff% oder " + other + "/bhelp");
+        } catch (NullPointerException e) {
+            getLogger().log(Level.WARNING,"Some messages not found!", e);
+        }
+
+        getLogger().info(metrics.isEnabled() ? "Statistiken wurden aktiviert" : "Statistiken sind deaktiviert");
         getLogger().info( "Bungeesystem wurde aktiviert!");
         getLogger().info( "						 ");
         getLogger().info( "[]=======================[]");
@@ -93,7 +132,7 @@ public class Bungeesystem extends Plugin {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS bannedPlayers (TargetUUID VARCHAR(64),TargetName VARCHAR(64),VonUUID VARCHAR(64),VonName VARCHAR(64),Grund VARCHAR(100),TimeStamp BIGINT(8),Bis VARCHAR(100),Perma TINYINT(1),Ban TINYINT(1), ip VARCHAR(100))");
              PreparedStatement ps1 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS history (TargetUUID VARCHAR(64), VonUUID VARCHAR(64), Type VARCHAR(50), Grund VARCHAR(100), Erstellt BIGINT(8), Bis BIGINT(8), Perma TINYINT(1), Ban TINYINT(1))");
-             PreparedStatement ps2 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS playerdata (UUID VARCHAR(64), Name VARCHAR(64), lastIP VARCHAR(60), firstJoin BIGINT(8), lastOnline BIGINT(8), bansMade INT(60), warnsMade INT(60), reportsMade INT(60), bansReceive INT(60), warnsReceive INT(60), power BIGINT(8))");
+             PreparedStatement ps2 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS playerdata (UUID VARCHAR(64) NOT NULL, Name VARCHAR(64) NOT NULL, lastIP VARCHAR(60), firstJoin BIGINT(8) NOT NULL, lastOnline BIGINT(8), bansMade INT(60) NOT NULL DEFAULT 0, warnsMade INT(60) NOT NULL DEFAULT 0, reportsMade INT(60) NOT NULL DEFAULT 0, bansReceive INT(60) NOT NULL DEFAULT 0, warnsReceive INT(60) NOT NULL DEFAULT 0, power BIGINT(8) NOT NULL DEFAULT 0, primary key(UUID))");
              PreparedStatement ps3 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS chat (message VARCHAR(255), uuid VARCHAR(100), timestamp BIGINT(8), server VARCHAR(50))");
              PreparedStatement ps4 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS onlinetime (UUID VARCHAR(255), Name VARCHAR(100), Datum VARCHAR(50), onlinezeit BIGINT(8))");
         ) {
@@ -107,8 +146,14 @@ public class Bungeesystem extends Plugin {
         }
     }
 
+    public String formatTime(Long timestamp) {
+        LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("Europe/Berlin"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy - HH:mm");
+        return date.format(formatter) + " Uhr";
+    }
+
     private void registerListener() {
-//        ProxyServer.getInstance().getPluginManager().registerListener(this, new Login(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new Login(this, dataSource));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new Chat(this));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new BanAdd(this));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new TabComplete(this));
@@ -116,10 +161,10 @@ public class Bungeesystem extends Plugin {
     }
 
     private void registerCommands() {
-//        if (settings.getBoolean("Toggler.report")) {
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
-//        }
+        if (settings.getBoolean("Toggler.report")) {
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
+        }
 //
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
@@ -183,7 +228,7 @@ public class Bungeesystem extends Plugin {
             File settingsFile = new File(getDataFolder().getPath(), "settings.yml");
             File banFile = new File(getDataFolder().getPath(), "reasons.yml");
             File mysqlFile = new File(getDataFolder().getPath(), "mysql.yml");
-            File cooldownsFile = new File(getDataFolder().getPath(), "cooldowns.yml");
+            cooldownsFile = new File(getDataFolder().getPath(), "cooldowns.yml");
             File blacklistFile = new File(getDataFolder().getPath(), "blacklist.yml");
             File raengeFile = new File(getDataFolder().getPath(), "raenge.yml");
             File standardBansFile = new File(getDataFolder().getPath(), "standardbans.yml");

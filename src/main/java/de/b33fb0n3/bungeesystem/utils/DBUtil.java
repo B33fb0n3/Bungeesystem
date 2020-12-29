@@ -1,9 +1,17 @@
 package de.b33fb0n3.bungeesystem.utils;
 
+import de.b33fb0n3.bungeesystem.Bungeesystem;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 
 /**
  * Plugin made by B33fb0n3YT
@@ -27,5 +35,31 @@ public final class DBUtil {
         }
 
         return String.join(", ", list);
+    }
+
+//    public static boolean isUserExists(DataSource source, String datenbank, String where, UUID uuid) {
+//        try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * from ? WHERE ? = ?;")) {
+//            ps.setString(1, datenbank);
+//            ps.setString(2, where);
+//            ps.setString(3, uuid.toString());
+//            ResultSet rs = ps.executeQuery();
+//            return rs.next();
+//        } catch (SQLException e) {
+//            Bungeesystem.logger().log(Level.WARNING, "could not check if user exists\n" + DBUtil.prettySQLException(e), e);
+//            return false;
+//        }
+//    }
+
+    public static int getWhatCount(DataSource source, UUID player, String type) {
+        // todo testen
+        try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY ERSTELLT DESC");) {
+            ps.setString(1, player.toString());
+            ps.setString(2, type);
+            ResultSet rs = ps.executeQuery();
+            return Integer.parseInt(rowToString(rs));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
