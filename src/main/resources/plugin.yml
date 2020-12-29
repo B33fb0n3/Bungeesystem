@@ -1,0 +1,60 @@
+name: ${project.artifactId}
+version: ${project.version}
+author: B33fb0n3YT
+description: ${project.description}
+main: ${project.mainClass}
+commands:
+   report:
+      description: Reporte Spieler
+   banadd:
+      description: Erstelle BanIDs
+   ban:
+      description: Banne Spieler
+   banremove:
+      description: Entferne BanIDs
+   reports:
+      description: Zeigt dir alle Reports
+   unban:
+      description: Entbanne Spieler
+   check:
+      description: Checke Spieler
+   warn:
+      description: Warne Spieler
+   warns:
+      description: Zeige bestimmte Warns
+   kick:
+      description: Kicke Spielers
+   changeid:
+      description: Aendere eine ID
+   history:
+      description: Zeigt dir alle Informationen
+   bans:
+      description: Zeige dir alle Bans eines Spielers
+   ip:
+      description: Zeigt dir die letzte IP eines Spielers
+   reset:
+      description: Resete einen Spieler
+   accounts:
+      description: Zeigt moegliche Alt Accounts
+   blacklist:
+      description: Fuegt Loescht verbotene Woerter
+   chatlog:
+      description: erstelle chatlogs
+   support:
+      description: fordere support an
+   testlag:
+      description: Testet ob das Plugin lagt
+   bhelp:
+      description: Zeigt dir die Hilfe
+   testperm:
+      description: Keine
+   teamchat:
+      description: Schreibe im Team
+   editban:
+      description: Editiere einen Ban
+   feedback:
+      description: Hinterlass Feedback
+   bug:
+      description: Melde einen Bug
+   onlinezeit:
+      description: Schau dir die Onlinezeit eines Spielers an
