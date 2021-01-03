@@ -24,7 +24,7 @@ public class HistoryManager {
     public HistoryManager() {
     }
 
-    public void insertInDB(UUID targetUUID, UUID vonUUID, String type, String grund, long erstellt, long bis, int perma, int ban, String vonEntbannt, String editby) {
+    public void insertInDB(UUID targetUUID, UUID vonUUID, String type, String grund, long erstellt, long bis, int perma, int ban) {
         try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection(); PreparedStatement createReport = conn.prepareStatement("INSERT INTO history (TargetUUID,VonUUID,Type,Grund,Erstellt,Bis,Perma,Ban) VALUES(?,?,?,?,?,?,?,?)");) {
             createReport.setString(1, targetUUID.toString());
             createReport.setString(2, vonUUID.toString());

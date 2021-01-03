@@ -48,8 +48,8 @@ public class ReportManager {
     }
 
     public void insertReportInDB() {
-        new Playerdata(target).updatePlayerData("reportsMade", null);
-        new HistoryManager().insertInDB(getTarget(), getReporter().getUniqueId(), "report", getGrund(), getErstellt(), -1, -1, -1, null, null);
+        new Playerdata(getReporter().getUniqueId()).updatePlayerData("reportsMade", null);
+        new HistoryManager().insertInDB(getTarget(), getReporter().getUniqueId(), "report", getGrund(), getErstellt(), -1, -1, -1);
     }
 
     public void sendReport(List<String> sendReports) {
@@ -128,7 +128,8 @@ public class ReportManager {
     }
 
     public void sendLastReports() {
-        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM history WHERE Type= ? ORDER BY Erstellt DESC LIMIT 10");) {
+        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM history WHERE Type= ? ORDER BY Erstellt DESC LIMIT 10");) {
             ps.setString(1, "report");
             ResultSet rs = ps.executeQuery();
             getReporter().sendMessage(new ComponentBuilder(Bungeesystem.other2 + "--- §3Wer" + Bungeesystem.other2 + " ---- §3Grund " + Bungeesystem.other2 + "---- §3Von" + Bungeesystem.other2 + " ---").create());
@@ -136,13 +137,12 @@ public class ReportManager {
             int count2 = 0;
             while (rs.next()) {
                 TextComponent tc = new TextComponent();
-                final String targetName = UUIDFetcher.getName(UUID.fromString(rs.getString("TargetUUID")));
-                tc.setText(Bungeesystem.herH + count + ". " + Bungeesystem.normal + targetName + " §f» " + Bungeesystem.herH + rs.getString("Grund") + " §f» " + Bungeesystem.normal + UUIDFetcher.getName(UUID.fromString(rs.getString("VonUUID"))));
+                tc.setText(Bungeesystem.herH + count + ". " + Bungeesystem.normal + UUIDFetcher.getName(UUID.fromString(rs.getString("TargetUUID"))) + " §f» " + Bungeesystem.herH + rs.getString("Grund") + " §f» " + Bungeesystem.normal + UUIDFetcher.getName(UUID.fromString(rs.getString("VonUUID"))));
 
                 TextComponent tc1 = new TextComponent();
                 tc1.setText(Bungeesystem.other2 + " [" + Bungeesystem.fehler + "TP" + Bungeesystem.other2 + "]");
                 tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Bungeesystem.other2 + "Klick zum Teleportieren")));
-                tc1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report tp " + targetName));
+                tc1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report tp " + UUIDFetcher.getName(UUID.fromString(rs.getString("TargetUUID")))));
                 tc.addExtra(tc1);
 
                 getReporter().sendMessage(tc);

@@ -1,6 +1,7 @@
 package de.b33fb0n3.bungeesystem.utils;
 
 import de.b33fb0n3.bungeesystem.Bungeesystem;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import javax.sql.DataSource;
@@ -50,7 +51,6 @@ public class RangManager {
 
     public Long getPower(UUID target) {
         Playerdata playerdata = new Playerdata(target);
-        playerdata.createPlayer(target, null, UUIDFetcher.getName(target));
         return Long.parseLong(String.valueOf(playerdata.getPower()));
     }
 

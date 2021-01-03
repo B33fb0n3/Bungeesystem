@@ -1,6 +1,7 @@
 package de.b33fb0n3.bungeesystem.utils;
 
 import de.b33fb0n3.bungeesystem.Bungeesystem;
+import net.md_5.bungee.api.ProxyServer;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -154,7 +155,7 @@ public class Playerdata {
         try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("INSERT INTO playerdata (UUID,Name,lastIP,firstJoin,lastOnline,bansMade,warnsMade,reportsMade,bansReceive,warnsReceive, power) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE UUID=UUID")) {
             ps.setString(1, getUuid().toString()); // uuid
             ps.setString(2, getName()); // name
-            ps.setString(3, ip.replace("/", "").split(":")[0]); // lastIP
+            ps.setString(3, ip == null ? null : ip.replace("/", "").split(":")[0]); // lastIP
             ps.setLong(4, System.currentTimeMillis()); // firstJoin
             ps.setLong(5, -1); // lastOnline
             ps.setInt(6, 0); // bansMade

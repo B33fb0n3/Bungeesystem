@@ -9,6 +9,8 @@ import com.google.gson.JsonParser;
 import de.b33fb0n3.bungeesystem.Bungeesystem;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +33,8 @@ public class UUIDFetcher {
     private static final String NAME_URL = "https://api.mojang.com/user/profiles/%s/names";
 
     private static Cache<String, UUID> uuidCache = CacheBuilder.newBuilder().expireAfterAccess(30L, TimeUnit.MINUTES).build();
-    private static Cache<UUID, String> nameCache = CacheBuilder.newBuilder().expireAfterAccess(30L, TimeUnit.MINUTES).build();
+    //    private static Cache<UUID, String> nameCache = CacheBuilder.newBuilder().expireAfterAccess(30L, TimeUnit.MINUTES).build();
+    private static Map<UUID, String> nameCache = new HashMap<>();
 
     private static ExecutorService pool = Executors.newCachedThreadPool();
 
@@ -108,18 +111,32 @@ public class UUIDFetcher {
      * @return The name
      */
     public static String getName(UUID uuid) {
-        try {
-            nameCache.get(uuid, () -> {
-                String s = new Scanner(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString()).openStream(), "UTF-8").useDelimiter("\\A").next();
-                String name = parseJSON(s, "name");
-                uuidCache.put(name, uuid);
-                return name;
-            });
-        } catch (ExecutionException e) {
-            Bungeesystem.logger().log(Level.WARNING, "Could not fetch player name.", e);
+        if (nameCache.containsKey(uuid)) {
+            return nameCache.get(uuid);
         }
-
+        try {
+            String s = new Scanner(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString()).openStream(), "UTF-8").useDelimiter("\\A").next();
+            String name = parseJSON(s, "name");
+            nameCache.put(uuid, name);
+            uuidCache.put(name, uuid);
+            return name;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
+
+//        try {
+//            nameCache.get(uuid, () -> {
+//                String s = new Scanner(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString()).openStream(), "UTF-8").useDelimiter("\\A").next();
+//                String name = parseJSON(s, "name");
+//                uuidCache.put(name, uuid);
+//                return name;
+//            });
+//        } catch (ExecutionException e) {
+//            Bungeesystem.logger().log(Level.WARNING, "Could not fetch player name.", e);
+//        }
+//
+//        return null;
     }
 
     public static String parseJSON(final String json, final String key) {
