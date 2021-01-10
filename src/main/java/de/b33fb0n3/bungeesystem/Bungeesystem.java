@@ -1,6 +1,7 @@
 package de.b33fb0n3.bungeesystem;
 
 import de.b33fb0n3.bungeesystem.commands.Ban;
+import de.b33fb0n3.bungeesystem.commands.Editban;
 import de.b33fb0n3.bungeesystem.commands.Report;
 import de.b33fb0n3.bungeesystem.commands.Reports;
 import de.b33fb0n3.bungeesystem.listener.*;
@@ -180,7 +181,7 @@ public class Bungeesystem extends Plugin {
         }
 
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bans("bans"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanAddRECODE("banadd"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanRemove("banremove"));
