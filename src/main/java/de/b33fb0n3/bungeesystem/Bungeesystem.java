@@ -1,9 +1,9 @@
 package de.b33fb0n3.bungeesystem;
 
+import de.b33fb0n3.bungeesystem.commands.Ban;
 import de.b33fb0n3.bungeesystem.commands.Report;
 import de.b33fb0n3.bungeesystem.commands.Reports;
-import de.b33fb0n3.bungeesystem.listener.Chat;
-import de.b33fb0n3.bungeesystem.listener.Login;
+import de.b33fb0n3.bungeesystem.listener.*;
 import de.b33fb0n3.bungeesystem.utils.ConnectionPoolFactory;
 import de.b33fb0n3.bungeesystem.utils.ReportManager;
 import de.b33fb0n3.bungeesystem.utils.Updater;
@@ -140,7 +140,7 @@ public class Bungeesystem extends Plugin {
     private void initMySQL() {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS bannedPlayers (TargetUUID VARCHAR(64) NOT NULL,TargetName VARCHAR(64),VonUUID VARCHAR(64) NOT NULL,VonName VARCHAR(64),Grund VARCHAR(100) NOT NULL,TimeStamp BIGINT NOT NULL,Bis VARCHAR(100) NOT NULL,Perma TINYINT(1) NOT NULL,Ban TINYINT(1) NOT NULL, ip VARCHAR(100), baneditiertvon VARCHAR(36), beweis VARCHAR(200))");
-             PreparedStatement ps1 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS history (TargetUUID VARCHAR(64), VonUUID VARCHAR(64), Type VARCHAR(50), Grund VARCHAR(100), Erstellt BIGINT(8), Bis BIGINT(8), Perma TINYINT(1), Ban TINYINT(1))");
+             PreparedStatement ps1 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS history (TargetUUID VARCHAR(64), VonUUID VARCHAR(64), Type VARCHAR(50), Grund VARCHAR(100), Erstellt BIGINT(8), Bis BIGINT(8), Perma TINYINT(1), Ban TINYINT(1), VonEntbannt VARCHAR(20))");
              PreparedStatement ps2 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS playerdata (UUID VARCHAR(64) NOT NULL, Name VARCHAR(64) NOT NULL, lastIP VARCHAR(60), firstJoin BIGINT(8) NOT NULL, lastOnline BIGINT(8), bansMade INT(60) NOT NULL DEFAULT 0, warnsMade INT(60) NOT NULL DEFAULT 0, reportsMade INT(60) NOT NULL DEFAULT 0, bansReceive INT(60) NOT NULL DEFAULT 0, warnsReceive INT(60) NOT NULL DEFAULT 0, power BIGINT(8) NOT NULL DEFAULT 0, primary key(UUID))");
              PreparedStatement ps3 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS chat (message VARCHAR(255), uuid VARCHAR(100), timestamp BIGINT(8), server VARCHAR(50))");
              PreparedStatement ps4 = conn.prepareStatement("CREATE TABLE IF NOT EXISTS onlinetime (UUID VARCHAR(255), Name VARCHAR(100), Datum VARCHAR(50), onlinezeit BIGINT(8))");
@@ -169,8 +169,8 @@ public class Bungeesystem extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Login(this, dataSource, settings, standardBans));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Chat(this, settings, blacklist, dataSource, standardBans, activechats));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new BanAdd(this));
-//        ProxyServer.getInstance().getPluginManager().registerListener(this, new TabComplete(this));
-//        ProxyServer.getInstance().getPluginManager().registerListener(this, new Disconnect(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new TabComplete(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new Disconnect(this, dataSource));
     }
 
     private void registerCommands() {
@@ -178,8 +178,8 @@ public class Bungeesystem extends Plugin {
             ProxyServer.getInstance().getPluginManager().registerCommand(this, new Report("report"));
             ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reports("reports"));
         }
-//
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
+
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bans("bans"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanAddRECODE("banadd"));
@@ -345,6 +345,7 @@ public class Bungeesystem extends Plugin {
                 settings.set("ChatColor.other2", "&7");
 
                 settings.set("Ban.Baninfo", "&b%player% &ahat &b%target% &afür &b%reason% &agebannt!");
+                settings.set("Ban.permaafter3", true);
                 settings.set("Ban.Unbaninfo", "&b%player% &ahat &b%target% &aentbannt!");
                 settings.set("Ban.Editinfo", "&aDer Ban von &b%target% &awurde von &b%player% &aeditiert!");
                 settings.set("Ban.Disconnectmessage", "&cDu wurdest gebannt!%absatz% &aGrund: &b%reason%");

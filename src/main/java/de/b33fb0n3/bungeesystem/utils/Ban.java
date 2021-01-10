@@ -472,8 +472,6 @@ public class Ban {
             ps.setString(1, this.getTargetUUID().toString());
             ps.setString(2, "ban");
             ResultSet rs = ps.executeQuery();
-            if (!rs.next())
-                return 0;
             int anzahl = 0;
             while (rs.next()) {
                 if (reason) {
