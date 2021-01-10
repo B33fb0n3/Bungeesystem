@@ -12,6 +12,7 @@ import de.b33fb0n3.bungeesystem.Bungeesystem;
 import de.b33fb0n3.bungeesystem.utils.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -36,16 +37,19 @@ public class Reports extends Command {
             final ProxiedPlayer pp = (ProxiedPlayer) sender;
             ReportManager reportManager = new ReportManager(pp);
             if (pp.hasPermission("bungeecord.reports") || pp.hasPermission("bungeecord.*")) {
-                if (args.length == 0) {
+                if (args.length == 0) { // /reports
                     reportManager.sendLastReports();
                     return;
                 }
-                if (args.length == 2 || args.length == 1) {
-                    int seite = 1;
-                    try {
-                        seite = Integer.parseInt(args[1]);
-                    } catch (NumberFormatException e) {
-                        pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + Bungeesystem.fehler + "Bitte gib eine Zahl ein").create());
+                if (args.length == 2 || args.length == 1) { // /reports <Spieler> <Seite>
+                    int seite = 1; // falls args = 1
+                    if (args.length == 2) {
+                        try {
+                            seite = Integer.parseInt(args[1]);
+                        } catch (NumberFormatException e) {
+                            pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + Bungeesystem.fehler + "Bitte gib eine Zahl ein").create());
+                            return;
+                        }
                     }
                     sendHelp(seite, pp, args[0]);
                 } else
@@ -59,7 +63,7 @@ public class Reports extends Command {
     private void sendHelp(int seite, ProxiedPlayer pp, String targetName) {
 
         UUID uuid = UUIDFetcher.getUUID(targetName);
-        if(uuid == null) {
+        if (uuid == null) {
             pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + Bungeesystem.fehler + "Dieser Spieler existiert nicht!").create());
             return;
         }
@@ -84,11 +88,11 @@ public class Reports extends Command {
 //        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Lösche §4alle §7Reports §c(§7§lnicht rückgänging§c)").create()));
 //        tc.addExtra(tc1);
 //        pp.sendMessage(tc);
-        pp.sendMessage(new ComponentBuilder(Bungeesystem.normal + "Reports von " + Bungeesystem.herH + targetName + " " + Bungeesystem.other2 + "(" + Bungeesystem.herH + seite + Bungeesystem.other2 + "/" + Bungeesystem.herH + allPages + Bungeesystem.other2+")").create());
+        pp.sendMessage(new ComponentBuilder(Bungeesystem.normal + "Reports von " + Bungeesystem.herH + targetName + " " + Bungeesystem.other2 + "(" + Bungeesystem.herH + seite + Bungeesystem.other2 + "/" + Bungeesystem.herH + allPages + Bungeesystem.other2 + ")").create());
 
         HistoryManager historyManager = new HistoryManager();
         List<HistoryElemt> reports = historyManager.readHistory(uuid, zeilen, seite, "report");
-        for(HistoryElemt report : reports) {
+        for (HistoryElemt report : reports) {
             TextComponent tc = new TextComponent();
             tc.setText(Bungeesystem.Prefix);
 
@@ -97,7 +101,7 @@ public class Reports extends Command {
             tc.addExtra(tc1);
 
             TextComponent tc2 = new TextComponent();
-            tc2.setText(Bungeesystem.other2+"["+Bungeesystem.fehler+"MEHR"+Bungeesystem.other2+"]");
+            tc2.setText(Bungeesystem.other2 + "[" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
 
             ArrayList<String> hoverArray = new ArrayList<>();
             int i = 1;
@@ -116,9 +120,9 @@ public class Reports extends Command {
             tc.addExtra(tc2);
 
             TextComponent tc3 = new TextComponent();
-            tc3.setText(Bungeesystem.other2+" ["+Bungeesystem.fehler+"LÖSCHEN"+Bungeesystem.other2+"]");
+            tc3.setText(Bungeesystem.other2 + " [" + Bungeesystem.fehler + "LÖSCHEN" + Bungeesystem.other2 + "]");
             tc3.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report del " + report.getErstellt()));
-            tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text((Bungeesystem.other2+"Lösche den Report"))));
+            tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text((Bungeesystem.other2 + "Lösche den Report"))));
             tc.addExtra(tc3);
 
             pp.sendMessage(tc);
@@ -135,18 +139,18 @@ public class Reports extends Command {
         TextComponent tc1 = new TextComponent();
         tc1.setText("§f«« ");
         tc1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reports " + targetName + " " + eineSeiteMinus));
-        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: "+Bungeesystem.herH + eineSeiteMinus + "§8)")));
+        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: " + Bungeesystem.herH + eineSeiteMinus + "§8)")));
         tc.addExtra(tc1);
 
         TextComponent tc2 = new TextComponent();
-        tc2.setText(Bungeesystem.other2+"["+Bungeesystem.fehler+"KLICK"+Bungeesystem.other2+"]");
-        tc2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Bungeesystem.fehler+"Klick auf die Pfeile!")));
+        tc2.setText(Bungeesystem.other2 + "[" + Bungeesystem.fehler + "KLICK" + Bungeesystem.other2 + "]");
+        tc2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Bungeesystem.fehler + "Klick auf die Pfeile!")));
         tc.addExtra(tc2);
 
         TextComponent tc3 = new TextComponent();
         tc3.setText(" §f»»");
         tc3.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reports " + targetName + " " + eineSeitePlus));
-        tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: "+Bungeesystem.herH + eineSeitePlus + "§8)")));
+        tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: " + Bungeesystem.herH + eineSeitePlus + "§8)")));
         tc.addExtra(tc3);
 
         pp.sendMessage(tc);

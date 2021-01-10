@@ -51,14 +51,15 @@ public final class DBUtil {
 //    }
 
     public static int getWhatCount(DataSource source, UUID player, String type) {
-        // todo testen
-        try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY ERSTELLT DESC");) {
+        try (Connection conn = source.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS count FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY ERSTELLT DESC");) {
             ps.setString(1, player.toString());
             ps.setString(2, type);
             ResultSet rs = ps.executeQuery();
-            return Integer.parseInt(rowToString(rs));
+            while (rs.first())
+                return rs.getInt(1);
         } catch (SQLException e) {
-            e.printStackTrace();
+            Bungeesystem.logger().log(Level.WARNING, "could not count for " + type, e);
         }
         return -1;
     }

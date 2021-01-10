@@ -31,8 +31,8 @@ public class Report extends Command {
         super(name);
     }
 
+    private List<String> sendReports = Bungeesystem.getPlugin().getSendReports();
     private List<String> reasons = new ArrayList<>();
-    private List<String> sendReports = new ArrayList<>();
 
     @Override
     public void execute(CommandSender sender, String[] args) {
@@ -80,14 +80,10 @@ public class Report extends Command {
                     } else if (args[0].equalsIgnoreCase("del")) {
                         if (pp.hasPermission("bungeecord.report.del") || pp.hasPermission("bungeecord.*")) {
                             String id = args[1];
-                            try {
-                                if(reportManager.deleteReport(id)) {
-                                    pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + "Der Report wurde gelöscht!").create());
-                                } else
-                                    pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + Bungeesystem.fehler + "Ein Fehler ist aufgetreten!").create());
-                            } catch (SQLException e) {
-                                Bungeesystem.logger().log(Level.WARNING, "cannot delete report with id " + id, e);
-                            }
+                            if(reportManager.deleteReport(id)) {
+                                pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + "Der Report wurde gelöscht!").create());
+                            } else
+                                pp.sendMessage(new ComponentBuilder(Bungeesystem.Prefix + Bungeesystem.fehler + "Ein Fehler ist aufgetreten!").create());
                         } else {
                             pp.sendMessage(new ComponentBuilder(Bungeesystem.noPerm).create());
                         }

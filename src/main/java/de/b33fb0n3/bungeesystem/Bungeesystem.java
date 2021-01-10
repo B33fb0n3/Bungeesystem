@@ -2,12 +2,14 @@ package de.b33fb0n3.bungeesystem;
 
 import de.b33fb0n3.bungeesystem.commands.Report;
 import de.b33fb0n3.bungeesystem.commands.Reports;
+import de.b33fb0n3.bungeesystem.listener.Chat;
 import de.b33fb0n3.bungeesystem.listener.Login;
 import de.b33fb0n3.bungeesystem.utils.ConnectionPoolFactory;
 import de.b33fb0n3.bungeesystem.utils.ReportManager;
 import de.b33fb0n3.bungeesystem.utils.Updater;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -24,9 +26,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +60,9 @@ public class Bungeesystem extends Plugin {
     public static File standardBansFile;
     private DataSource dataSource;
     private HashMap<UUID, Long> allOnlineTimeToday = new HashMap<>();
+    private Updater updater;
+    private List<String> sendReports = new ArrayList<>();
+    private HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
 
     public static Logger logger() {
         return plugin.getLogger();
@@ -84,6 +87,7 @@ public class Bungeesystem extends Plugin {
         getLogger().info( "Coded by: B33fb0n3YT");
 
         loadConfig();
+
         ConnectionPoolFactory connectionPool = new ConnectionPoolFactory(mysqlConfig);
 
         // mysql connect
@@ -98,10 +102,11 @@ public class Bungeesystem extends Plugin {
         }
 
         // check update
-        Updater updater = new Updater(this);
-        if (updater.ckeckUpdate() == 0) {
+        updater = new Updater(this);
+        int checkUpdate = updater.ckeckUpdate();
+        if (checkUpdate == 0) {
             getLogger().info("§7Du bist auf der neusten Version!");
-        } else if (updater.ckeckUpdate() == 1) {
+        } else if (checkUpdate == 1) {
             getLogger().info("§aEine neue Version hier verfügbar: \n§bhttps://www.spigotmc.org/resources/bungeesystem-%E2%98%85-ban-mute-report-warn-kick-%E2%98%85-mysql.67179/updates");
             updater.setUpdate(true);
         } else {
@@ -162,7 +167,7 @@ public class Bungeesystem extends Plugin {
 
     private void registerListener() {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Login(this, dataSource, settings, standardBans));
-//        ProxyServer.getInstance().getPluginManager().registerListener(this, new Chat(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new Chat(this, settings, blacklist, dataSource, standardBans, activechats));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new BanAdd(this));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new TabComplete(this));
 //        ProxyServer.getInstance().getPluginManager().registerListener(this, new Disconnect(this));
@@ -226,6 +231,14 @@ public class Bungeesystem extends Plugin {
         getLogger().info( "Bungeesystem wurde deaktiviert!");
         getLogger().info( "						 ");
         getLogger().info( "[]=======================[]");
+    }
+
+    public Updater getUpdater() {
+        return updater;
+    }
+
+    public List<String> getSendReports() {
+        return sendReports;
     }
 
     private void loadConfig() {
@@ -307,7 +320,7 @@ public class Bungeesystem extends Plugin {
                 settings.set("NoPerm", "&cDazu hast du keine Rechte!");
                 settings.set("WarnInfo", "&b%player% &ahat &b%target% &afür &b%reason% &agewarnt!");
                 settings.set("BanReasons", "&a%id% &f» &c%reason% &8- &b%time% &8(&6%status%&8)");
-                settings.set("AntiAd", "&cBitte mache keine Werbung!");
+                settings.set("AntiAd", "&4Bitte mache keine Werbung!");
                 settings.set("Onlinezeit", "&a%player% &f» %onlinezeit%");
                 settings.set("TeamchatPrefix", "&6&lTC &f● &b%sender% &f» &7%msg%");
 

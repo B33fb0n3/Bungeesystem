@@ -117,10 +117,12 @@ public class ReportManager {
         list.clear();
     }
 
-    public boolean deleteReport(String id) throws SQLException {
-        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM history WHERE Erstellt = ?");) {
+    public boolean deleteReport(String id) {
+        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM history WHERE Erstellt = ?");) {
             ps.setString(1, id);
             ps.executeUpdate();
+            return true;
         } catch (SQLException e) {
             Bungeesystem.logger().log(Level.WARNING, "could not delete report with id " + id, e);
         }
