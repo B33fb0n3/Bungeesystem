@@ -50,7 +50,7 @@ public class HistoryManager {
             ps.setInt(4, page);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                reports.add(new HistoryElemt(UUID.fromString(rs.getString("TargetUUID")), UUID.fromString(rs.getString("VonUUID")), rs.getString("Type"), rs.getString("Grund"), rs.getLong("Erstellt"), rs.getLong("Bis"), rs.getInt("Perma"), rs.getInt("Ban")));
+                reports.add(new HistoryElemt(UUID.fromString(rs.getString("TargetUUID")), UUID.fromString(rs.getString("VonUUID")), rs.getString("Type"), rs.getString("Grund"), rs.getLong("Erstellt"), rs.getLong("Bis"), rs.getInt("Perma"), rs.getInt("Ban"), rs.getString("VonEntbannt")));
             }
         } catch (SQLException e) {
             Bungeesystem.logger().log(Level.WARNING, "could net read history elmts", e);

@@ -37,19 +37,6 @@ public final class DBUtil {
         return String.join(", ", list);
     }
 
-//    public static boolean isUserExists(DataSource source, String datenbank, String where, UUID uuid) {
-//        try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * from ? WHERE ? = ?;")) {
-//            ps.setString(1, datenbank);
-//            ps.setString(2, where);
-//            ps.setString(3, uuid.toString());
-//            ResultSet rs = ps.executeQuery();
-//            return rs.next();
-//        } catch (SQLException e) {
-//            Bungeesystem.logger().log(Level.WARNING, "could not check if user exists\n" + DBUtil.prettySQLException(e), e);
-//            return false;
-//        }
-//    }
-
     public static int getWhatCount(DataSource source, UUID player, String type) {
         try (Connection conn = source.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS count FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY ERSTELLT DESC");) {
@@ -62,5 +49,17 @@ public final class DBUtil {
             Bungeesystem.logger().log(Level.WARNING, "could not count for " + type, e);
         }
         return -1;
+    }
+
+    public static boolean timeExists(DataSource source, long erstellt) {
+        try (Connection conn = source.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM bannedPlayers WHERE TimeStamp = ?")) {
+            ps.setLong(1, erstellt);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            Bungeesystem.logger().log(Level.WARNING, "could not check if timestamp exists", e);
+        }
+        return false;
     }
 }

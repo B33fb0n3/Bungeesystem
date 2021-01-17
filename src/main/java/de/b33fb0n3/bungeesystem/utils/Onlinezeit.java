@@ -178,7 +178,6 @@ public class Onlinezeit {
             tc.setText(Bungeesystem.Prefix + "Hier der Trend von " + UUIDFetcher.getName(from) + ": ");
         TextComponent tc1 = new TextComponent();
         tc1.setText(Bungeesystem.other2 + "[" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
-
         String url = PasteUtils.paste(
                 "yQuer: " + yQuer + "\n" +
                         "tQuer: " + tQuer + "\n" +

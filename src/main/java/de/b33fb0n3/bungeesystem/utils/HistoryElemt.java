@@ -20,8 +20,9 @@ public class HistoryElemt {
     private long bis;
     private int perma;
     private int ban;
+    private String vonEntbannt;
 
-    public HistoryElemt(UUID targetUUID, UUID vonUUID, String type, String grund, long erstellt, long bis, int perma, int ban) {
+    public HistoryElemt(UUID targetUUID, UUID vonUUID, String type, String grund, long erstellt, long bis, int perma, int ban, String vonEntbannt) {
         this.targetUUID = targetUUID;
         this.vonUUID = vonUUID;
         this.type = type;
@@ -30,6 +31,11 @@ public class HistoryElemt {
         this.bis = bis;
         this.perma = perma;
         this.ban = ban;
+        this.vonEntbannt = vonEntbannt;
+    }
+
+    public String getVonEntbannt() {
+        return vonEntbannt;
     }
 
     public UUID getTargetUUID() {

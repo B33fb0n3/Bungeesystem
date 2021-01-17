@@ -1,12 +1,9 @@
 package de.b33fb0n3.bungeesystem;
 
-import de.b33fb0n3.bungeesystem.commands.Ban;
-import de.b33fb0n3.bungeesystem.commands.Editban;
-import de.b33fb0n3.bungeesystem.commands.Report;
-import de.b33fb0n3.bungeesystem.commands.Reports;
+import de.b33fb0n3.bungeesystem.commands.*;
+import de.b33fb0n3.bungeesystem.commands.BanAdd;
 import de.b33fb0n3.bungeesystem.listener.*;
 import de.b33fb0n3.bungeesystem.utils.ConnectionPoolFactory;
-import de.b33fb0n3.bungeesystem.utils.ReportManager;
 import de.b33fb0n3.bungeesystem.utils.Updater;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -59,6 +56,7 @@ public class Bungeesystem extends Plugin {
     public static Configuration standardBans;
     public static File cooldownsFile;
     public static File standardBansFile;
+    public static File banFile;
     private DataSource dataSource;
     private HashMap<UUID, Long> allOnlineTimeToday = new HashMap<>();
     private Updater updater;
@@ -83,9 +81,9 @@ public class Bungeesystem extends Plugin {
 
         Metrics metrics = new Metrics(this, 9816);
 
-        getLogger().info( "[]=======================[]");
-        getLogger().info( "						 ");
-        getLogger().info( "Coded by: B33fb0n3YT");
+        getLogger().info("[]=======================[]");
+        getLogger().info("						 ");
+        getLogger().info("Coded by: B33fb0n3YT");
 
         loadConfig();
 
@@ -126,13 +124,13 @@ public class Bungeesystem extends Plugin {
             noPerm = settings.getString("NoPerm").replace("&", "§");
             helpMessage = ChatColor.translateAlternateColorCodes('&', Prefix + fehler + "Benutze: " + other + "/bhelp %begriff% oder " + other + "/bhelp");
         } catch (NullPointerException e) {
-            getLogger().log(Level.WARNING,"Some messages not found!", e);
+            getLogger().log(Level.WARNING, "Some messages not found!", e);
         }
 
         getLogger().info(metrics.isEnabled() ? "Statistiken wurden aktiviert" : "Statistiken sind deaktiviert");
-        getLogger().info( "Bungeesystem wurde aktiviert!");
-        getLogger().info( "						 ");
-        getLogger().info( "[]=======================[]");
+        getLogger().info("Bungeesystem wurde aktiviert!");
+        getLogger().info("						 ");
+        getLogger().info("[]=======================[]");
         registerCommands();
         registerListener();
         initMySQL();
@@ -169,7 +167,7 @@ public class Bungeesystem extends Plugin {
     private void registerListener() {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Login(this, dataSource, settings, standardBans));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Chat(this, settings, blacklist, dataSource, standardBans, activechats));
-//        ProxyServer.getInstance().getPluginManager().registerListener(this, new BanAdd(this));
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new de.b33fb0n3.bungeesystem.listener.BanAdd(this));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new TabComplete(this));
         ProxyServer.getInstance().getPluginManager().registerListener(this, new Disconnect(this, dataSource));
     }
@@ -182,16 +180,16 @@ public class Bungeesystem extends Plugin {
 
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban("ban"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Editban("editban"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bans("bans"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanAddRECODE("banadd"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanRemove("banremove"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban("unban"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Check("check"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new TestLag("testlag"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BHelp("bhelp"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new TestPerm("testperm"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Feedback("feedback"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bug("bug"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bans("bans"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanAdd("banadd"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BanRemove("banremove"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban("unban"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Check("check"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new TestLag("testlag"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new BHelp("bhelp"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new TestPerm("testperm"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Feedback("feedback"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bug("bug"));
 //
 //        if (settings.getBoolean("Toggler.onlinezeit"))
 //            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Onlinezeit("onlinezeit"));
@@ -204,11 +202,11 @@ public class Bungeesystem extends Plugin {
 //        if (settings.getBoolean("Toggler.kick"))
 //            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Kick("kick"));
 //
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChangeID("changeid"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChangeID("changeid"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reset("reset"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new IP("ip"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new History("history"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new IP("ip"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Accounts("accounts"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reset("reset"));
 //
 //        if(settings.getBoolean("Toggler.chat.teamchat"))
 //            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Teamchat("teamchat"));
@@ -226,12 +224,12 @@ public class Bungeesystem extends Plugin {
 
     @Override
     public void onDisable() {
-        getLogger().info( "[]=======================[]");
-        getLogger().info( "						 ");
-        getLogger().info( "Coded by: B33fb0n3YT");
-        getLogger().info( "Bungeesystem wurde deaktiviert!");
-        getLogger().info( "						 ");
-        getLogger().info( "[]=======================[]");
+        getLogger().info("[]=======================[]");
+        getLogger().info("						 ");
+        getLogger().info("Coded by: B33fb0n3YT");
+        getLogger().info("Bungeesystem wurde deaktiviert!");
+        getLogger().info("						 ");
+        getLogger().info("[]=======================[]");
     }
 
     public Updater getUpdater() {
@@ -248,7 +246,7 @@ public class Bungeesystem extends Plugin {
                 getDataFolder().mkdir();
             }
             File settingsFile = new File(getDataFolder().getPath(), "settings.yml");
-            File banFile = new File(getDataFolder().getPath(), "reasons.yml");
+            banFile = new File(getDataFolder().getPath(), "reasons.yml");
             File mysqlFile = new File(getDataFolder().getPath(), "mysql.yml");
             cooldownsFile = new File(getDataFolder().getPath(), "cooldowns.yml");
             File blacklistFile = new File(getDataFolder().getPath(), "blacklist.yml");
@@ -514,7 +512,7 @@ public class Bungeesystem extends Plugin {
             }
             raenge = ConfigurationProvider.getProvider(YamlConfiguration.class).load(raengeFile);
         } catch (IOException | NullPointerException e) {
-            getLogger().log(Level.WARNING,"failed to create config", e);
+            getLogger().log(Level.WARNING, "failed to create config", e);
         }
 
         getLogger().info("Configs geladen!");
