@@ -40,14 +40,18 @@ public class HistoryManager {
         }
     }
 
-    public List<HistoryElemt> readHistory(UUID target, int limit, int page, String what) {
+    public List<HistoryElemt> readHistory(UUID target, int limit, int page, String what, boolean lastOnes) {
         List<HistoryElemt> reports = new LinkedList<>();
         page = page * 10 - 10;
-        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY Erstellt DESC LIMIT ? OFFSET ?")) {
-            ps.setString(1, target.toString());
-            ps.setString(2, what);
-            ps.setInt(3, limit);
-            ps.setInt(4, page);
+        String sql = "SELECT * FROM history " + (target == null ? "" : "WHERE TargetUUID = ?") + (lastOnes ? "" : " AND Type = ? ") + "ORDER BY Erstellt DESC LIMIT ? OFFSET ?";
+        try (Connection conn = Bungeesystem.getPlugin().getDataSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (target != null)
+                ps.setString(1, target.toString());
+            if (!lastOnes)
+                ps.setString(2, what);
+            ps.setInt(lastOnes ? (target == null ? 1 : 2) : 3, limit);
+            ps.setInt(lastOnes ? (target == null ? 2 : 3) : 4, page);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 reports.add(new HistoryElemt(UUID.fromString(rs.getString("TargetUUID")), UUID.fromString(rs.getString("VonUUID")), rs.getString("Type"), rs.getString("Grund"), rs.getLong("Erstellt"), rs.getLong("Bis"), rs.getInt("Perma"), rs.getInt("Ban"), rs.getString("VonEntbannt")));

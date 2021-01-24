@@ -82,7 +82,7 @@ public class Check extends Command {
         sender.sendMessage(tc);
         if (tc.getExtra() != null)
             tc.getExtra().clear();
-        int reports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),ut, "report");
+        int reports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),ut, "report", true);
         tc.setText(Bungeesystem.Prefix + ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Check.reports").replace("%reportCount%", (reports == -1 || reports == 0 ? "§cKeine" : String.valueOf(reports)))));
         if (reports != 0) {
             tc1.setText(Bungeesystem.other2 + " [" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
@@ -94,7 +94,7 @@ public class Check extends Command {
         sender.sendMessage(tc);
         if (tc.getExtra() != null)
             tc.getExtra().clear();
-        int warns = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), ut, "warn");
+        int warns = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), ut, "warn", true);
         tc.setText(Bungeesystem.Prefix + ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Check.warns").replace("%warnsCount%", (warns == -1 || warns == 0 ? "§cKeine" : String.valueOf(warns)))));
         if (warns != 0) {
             tc1.setText(Bungeesystem.other2 + " [" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
@@ -106,7 +106,7 @@ public class Check extends Command {
         sender.sendMessage(tc);
         if (tc.getExtra() != null)
             tc.getExtra().clear();
-        int bans = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),ut, "ban");
+        int bans = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),ut, "ban", true);
         tc.setText(Bungeesystem.Prefix + ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Check.bans").replace("%bansCount%", (bans == -1 || bans == 0 ? "§cKeine" : String.valueOf(bans)))));
         if (bans != 0) {
             tc1.setText(Bungeesystem.other2 + " [" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
@@ -154,7 +154,7 @@ public class Check extends Command {
                 break;
             }
         }
-        Onlinezeit onlinezeit = new Onlinezeit(sender, Bungeesystem.getPlugin().getDataSource());
+        de.b33fb0n3.bungeesystem.utils.Onlinezeit onlinezeit = new de.b33fb0n3.bungeesystem.utils.Onlinezeit(sender, Bungeesystem.getPlugin().getDataSource());
         if (!(sender instanceof ProxiedPlayer)) {
             String h = hoverArray.get(0);
             h = "\n" + h + "\n";

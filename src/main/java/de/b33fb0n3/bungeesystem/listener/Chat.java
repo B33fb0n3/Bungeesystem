@@ -111,7 +111,7 @@ public class Chat implements Listener {
                                     int maxWarns = settings.getInt("Warns.MaxWarns");
                                     ArrayList<String> warnArray = new ArrayList<>();
                                     int i = 1;
-                                    int whatCount = DBUtil.getWhatCount(source, pp.getUniqueId(), "warn");
+                                    int whatCount = DBUtil.getWhatCount(source, pp.getUniqueId(), "warn", true);
                                     while (true) {
                                         try {
                                             String line = ChatColor.translateAlternateColorCodes('&', settings.getString("WarnMessage.line" + i)).replace("%warnCount%", String.valueOf(whatCount + 1)).replace("%maxWarns%", String.valueOf(maxWarns)).replace("%grund%", "Wortwahl (" + badWord + ")");

@@ -37,11 +37,13 @@ public final class DBUtil {
         return String.join(", ", list);
     }
 
-    public static int getWhatCount(DataSource source, UUID player, String type) {
+    public static int getWhatCount(DataSource source, UUID player, String type, boolean where) {
         try (Connection conn = source.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS count FROM history WHERE TargetUUID = ? AND Type = ? ORDER BY ERSTELLT DESC");) {
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) AS count FROM history WHERE TargetUUID = ?" + (where ? " AND Type = ?" : "") + " ORDER BY ERSTELLT DESC");) {
             ps.setString(1, player.toString());
-            ps.setString(2, type);
+            if (where) {
+                ps.setString(2, type);
+            }
             ResultSet rs = ps.executeQuery();
             while (rs.first())
                 return rs.getInt(1);

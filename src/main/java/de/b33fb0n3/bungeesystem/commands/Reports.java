@@ -68,7 +68,7 @@ public class Reports extends Command {
             return;
         }
         int zeilen = 10;
-        int allReports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), uuid, "report");
+        int allReports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), uuid, "report", true);
         int allPages = allReports / zeilen;
         int eineSeitePlus = seite + 1;
         int eineSeiteMinus = seite - 1;
@@ -91,7 +91,7 @@ public class Reports extends Command {
         pp.sendMessage(new ComponentBuilder(Bungeesystem.normal + "Reports von " + Bungeesystem.herH + targetName + " " + Bungeesystem.other2 + "(" + Bungeesystem.herH + seite + Bungeesystem.other2 + "/" + Bungeesystem.herH + allPages + Bungeesystem.other2 + ")").create());
 
         HistoryManager historyManager = new HistoryManager();
-        List<HistoryElemt> reports = historyManager.readHistory(uuid, zeilen, seite, "report");
+        List<HistoryElemt> reports = historyManager.readHistory(uuid, zeilen, seite, "report", false);
         for (HistoryElemt report : reports) {
             TextComponent tc = new TextComponent();
             tc.setText(Bungeesystem.Prefix);

@@ -190,22 +190,22 @@ public class Bungeesystem extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new TestPerm("testperm"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Feedback("feedback"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Bug("bug"));
-//
-//        if (settings.getBoolean("Toggler.onlinezeit"))
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Onlinezeit("onlinezeit"));
-//
-//        if (settings.getBoolean("Toggler.warn")) {
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Warn("warn"));
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Warns("warns"));
-//        }
-//
-//        if (settings.getBoolean("Toggler.kick"))
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Kick("kick"));
-//
+
+        if (settings.getBoolean("Toggler.onlinezeit"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Onlinezeit("onlinezeit"));
+
+        if (settings.getBoolean("Toggler.warn")) {
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Warn("warn"));
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Warns("warns"));
+        }
+
+        if (settings.getBoolean("Toggler.kick"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Kick("kick"));
+
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChangeID("changeid"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reset("reset"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new IP("ip"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new History("history"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new History("history"));
 //        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Accounts("accounts"));
 //
 //        if(settings.getBoolean("Toggler.chat.teamchat"))

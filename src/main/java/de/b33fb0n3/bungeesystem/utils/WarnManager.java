@@ -40,6 +40,10 @@ public class WarnManager {
         this.source = source;
     }
 
+    public WarnManager() {
+
+    }
+
     public void addWarn() {
         new HistoryManager().insertInDB(getTargetUUID(), getVonUUID(), "warn", getGrund(), getTimestamp(), -1, -1, -1);
         String message = (Bungeesystem.Prefix + getSettings().getString("WarnInfo").replace("%player%", UUIDFetcher.getName(getVonUUID())).replace("%target%", UUIDFetcher.getName(getTargetUUID())).replace("%reason%", getGrund())).replace("&", "§");
@@ -96,4 +100,7 @@ public class WarnManager {
         return settings;
     }
 
+    public void setSource(DataSource source) {
+        this.source = source;
+    }
 }

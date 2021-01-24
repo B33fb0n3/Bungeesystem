@@ -61,7 +61,7 @@ public class Bans extends Command {
 
         UUID uuid = UUIDFetcher.getUUID(targetName);
         int zeilen = 10;
-        int allReports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),uuid, "ban");
+        int allReports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),uuid, "ban", true);
         int allPages = allReports / zeilen;
         int eineSeitePlus = seite + 1;
         int eineSeiteMinus = seite - 1;
@@ -85,7 +85,7 @@ public class Bans extends Command {
 //        pp.sendMessage(tc);
 
         HistoryManager historyManager = new HistoryManager();
-        List<HistoryElemt> bans = historyManager.readHistory(uuid, zeilen, seite, "ban");
+        List<HistoryElemt> bans = historyManager.readHistory(uuid, zeilen, seite, "ban", false);
         for(HistoryElemt ban : bans) {
             TextComponent tc = new TextComponent();
             tc.setText(Bungeesystem.Prefix);

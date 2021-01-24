@@ -302,7 +302,7 @@ public class Onlinezeit {
                                 DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                                 if (date.format(formatter).equalsIgnoreCase(date2.format(formatter2))) {
                                     // heutiger Tag
-                                    tc1 = calcTime((allTime + dif), (!(this.getSender() instanceof ProxiedPlayer)));
+                                    tc1 = calcTime((allTime + dif), (!(this.getSender() instanceof ProxiedPlayer))); // tt
                                 } else
                                     tc1 = calcTime(rs.getLong("onlinezeit"), (!(this.getSender() instanceof ProxiedPlayer)));
                             } else {
@@ -447,11 +447,11 @@ public class Onlinezeit {
     public long getActualTime(java.util.UUID fromUUID) {
         try {
             if (ProxyServer.getInstance().getPlayer(fromUUID).isConnected()) {
-                return -1;
-            } else {
                 long joinTS = Bungeesystem.getPlugin().getAllOnlineTimeToday().get(fromUUID);
                 long leaveTS = System.currentTimeMillis();
                 return leaveTS - joinTS;
+            } else {
+                return -1;
             }
         } catch (NullPointerException e) {
             return -1;
