@@ -530,7 +530,10 @@ public class Onlinezeit {
                 Bungeesystem.logger().log(Level.WARNING, "failed to get data per total");
             }
             nameToTime = sortByValue(false, nameToTime);
-            for (int i = 0; i < 3; i++) {
+            int count = 3;
+            if(nameToTime.size() < 3)
+                count = nameToTime.size();
+            for (int i = 0; i < count; i++) {
                 TextComponent tc = new TextComponent();
                 tc.setText(Bungeesystem.Prefix + Bungeesystem.herH + "#" + (i + 1) + Bungeesystem.normal + " " + nameToTime.keySet().toArray()[i] + " §f» ");
                 tc.addExtra(calcTime(nameToTime.get(nameToTime.keySet().toArray()[i]), console));

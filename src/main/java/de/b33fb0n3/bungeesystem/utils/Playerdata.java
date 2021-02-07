@@ -129,7 +129,8 @@ public class Playerdata {
     }
 
     public void loadData() {
-        try (Connection conn = source.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM playerdata WHERE UUID = ?")) {
+        try (Connection conn = source.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM playerdata WHERE UUID = ?")) {
             ps.setString(1, getUuid().toString());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {

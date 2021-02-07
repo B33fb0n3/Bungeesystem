@@ -57,11 +57,12 @@ public class Bungeesystem extends Plugin {
     public static File cooldownsFile;
     public static File standardBansFile;
     public static File banFile;
+    public static File blacklistFile;
     private DataSource dataSource;
     private HashMap<UUID, Long> allOnlineTimeToday = new HashMap<>();
     private Updater updater;
     private List<String> sendReports = new ArrayList<>();
-    private HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
+    public HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
 
     public static Logger logger() {
         return plugin.getLogger();
@@ -206,20 +207,20 @@ public class Bungeesystem extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Reset("reset"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new IP("ip"));
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new History("history"));
-//        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Accounts("accounts"));
-//
-//        if(settings.getBoolean("Toggler.chat.teamchat"))
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Teamchat("teamchat"));
-//
-//        if (settings.getBoolean("Toggler.chat.blacklist"))
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Blacklist("blacklist"));
-//
-//        if (settings.getBoolean("Toggler.chatlog")) {
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChatLog("chatlog"));
-//        }
-//
-//        if (settings.getBoolean("Toggler.support"))
-//            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Support("support"));
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Accounts("accounts"));
+
+        if(settings.getBoolean("Toggler.chat.teamchat"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Teamchat("teamchat"));
+
+        if (settings.getBoolean("Toggler.chat.blacklist"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Blacklist("blacklist"));
+
+        if (settings.getBoolean("Toggler.chatlog")) {
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChatLog("chatlog"));
+        }
+
+        if (settings.getBoolean("Toggler.support"))
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Support("support"));
     }
 
     @Override
@@ -249,7 +250,7 @@ public class Bungeesystem extends Plugin {
             banFile = new File(getDataFolder().getPath(), "reasons.yml");
             File mysqlFile = new File(getDataFolder().getPath(), "mysql.yml");
             cooldownsFile = new File(getDataFolder().getPath(), "cooldowns.yml");
-            File blacklistFile = new File(getDataFolder().getPath(), "blacklist.yml");
+            blacklistFile = new File(getDataFolder().getPath(), "blacklist.yml");
             File raengeFile = new File(getDataFolder().getPath(), "raenge.yml");
             standardBansFile = new File(getDataFolder().getPath(), "standardbans.yml");
             if (!mysqlFile.exists()) {

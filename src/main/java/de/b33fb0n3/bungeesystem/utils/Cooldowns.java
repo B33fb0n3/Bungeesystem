@@ -60,7 +60,7 @@ public class Cooldowns {
     }
 
     public String getType() {
-        return getType();
+        return type;
     }
 
     public ProxiedPlayer getPp() {
