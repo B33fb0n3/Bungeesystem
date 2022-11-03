@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Text;
-
 /**
  * Plugin made by B33fb0n3YT
  * 31.01.2021
@@ -58,6 +56,7 @@ public class Accounts extends Command {
                     lastIP = playerdata.getLastip();
                     if(lastIP == null || lastIP == "") {
                         sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Dieser Spieler war noch nie auf dem Netzwerk!"));
+                        return;
                     }
                 } else
                     lastIP = args[0];

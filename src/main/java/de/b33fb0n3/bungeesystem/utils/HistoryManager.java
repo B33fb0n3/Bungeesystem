@@ -58,6 +58,7 @@ public class HistoryManager {
             }
         } catch (SQLException e) {
             Bungeesystem.logger().log(Level.WARNING, "could net read history elmts", e);
+            return null;
         }
         return reports;
     }

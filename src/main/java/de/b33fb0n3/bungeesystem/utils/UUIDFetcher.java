@@ -9,10 +9,7 @@ import com.google.gson.JsonParser;
 import de.b33fb0n3.bungeesystem.Bungeesystem;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -82,11 +79,16 @@ public class UUIDFetcher {
     public static UUID getUUIDAt(String name, long timestamp) {
         try {
             return uuidCache.get(name, () -> {
-                String s = new Scanner(new URL("https://api.mojang.com/users/profiles/minecraft/" + name + "?at=" + timestamp).openStream(), "UTF-8").useDelimiter("\\A").next();
-                String searchedUUID = parseJSON(s, "id");
-                searchedUUID = searchedUUID.replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
-                nameCache.put(UUID.fromString(searchedUUID), name);
-                return UUID.fromString(searchedUUID);
+                try {
+                    String s = new Scanner(new URL("https://api.mojang.com/users/profiles/minecraft/" + name + "?at=" + timestamp).openStream(), "UTF-8").useDelimiter("\\A").next();
+                    String searchedUUID = parseJSON(s, "id");
+                    searchedUUID = searchedUUID.replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
+                    nameCache.put(UUID.fromString(searchedUUID), name);
+                    return UUID.fromString(searchedUUID);
+                } catch (NoSuchElementException e) {
+                    Bungeesystem.logger().log(Level.WARNING, "player to fetch not exists", e);
+                }
+                throw new ExecutionException(new Throwable("player not exists"));
             });
         } catch (ExecutionException e) {
             Bungeesystem.logger().log(Level.WARNING, "Could not fetch player UUID.", e);

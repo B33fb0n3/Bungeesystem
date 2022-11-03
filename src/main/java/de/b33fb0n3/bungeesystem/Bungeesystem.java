@@ -25,6 +25,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,6 +65,7 @@ public class Bungeesystem extends Plugin {
     private Updater updater;
     private List<String> sendReports = new ArrayList<>();
     public HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
+    public ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
     public static Logger logger() {
         return plugin.getLogger();
@@ -75,6 +78,7 @@ public class Bungeesystem extends Plugin {
     public static Bungeesystem getPlugin() {
         return plugin;
     }
+
 
     @Override
     public void onEnable() {
@@ -128,7 +132,6 @@ public class Bungeesystem extends Plugin {
             getLogger().log(Level.WARNING, "Some messages not found!", e);
         }
 
-        getLogger().info(metrics.isEnabled() ? "Statistiken wurden aktiviert" : "Statistiken sind deaktiviert");
         getLogger().info("Bungeesystem wurde aktiviert!");
         getLogger().info("						 ");
         getLogger().info("[]=======================[]");

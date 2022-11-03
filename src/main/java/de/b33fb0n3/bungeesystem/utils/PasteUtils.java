@@ -9,21 +9,19 @@ package de.b33fb0n3.bungeesystem.utils;
  */
 
 
-import com.google.gson.JsonParser;
 import de.b33fb0n3.bungeesystem.Bungeesystem;
-import net.md_5.bungee.api.ProxyServer;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.logging.Level;
 
 public class PasteUtils {
 
-    private static String pasteURL = "https://hasteb.in/";
+    private static String pasteURL = "https://www.toptal.com/developers/hastebin/documents";
 
     /**
      * A simple implementation of the Hastebin Client API, allowing data to be pasted online for
@@ -32,49 +30,28 @@ public class PasteUtils {
      * @param urlParameters The string to be sent in the body of the POST request
      * @return A formatted URL which links to the pasted file
      */
-    public synchronized static String paste(String urlParameters) {
-        final HttpURLConnection[] connection = {null};
-        final BufferedReader[] rd = {null};
-        final boolean[] error = {false};
-        ProxyServer.getInstance().getScheduler().runAsync(Bungeesystem.getPlugin(), new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //Create connection
-                    URL url = new URL(pasteURL + "documents");
-                    connection[0] = (HttpURLConnection) url.openConnection();
-                    connection[0].setRequestMethod("POST");
-                    connection[0].setDoInput(true);
-                    connection[0].setDoOutput(true);
+    public static String paste(String urlParameters) {
+        //Create Client
+        HttpClient client = HttpClient.newHttpClient();
 
-                    //Send request
-                    DataOutputStream wr = new DataOutputStream(connection[0].getOutputStream());
-                    wr.writeBytes(urlParameters);
-                    wr.flush();
-                    wr.close();
+        //Create connection
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(pasteURL))
+                .timeout(Duration.ofMinutes(1))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(urlParameters))
+                .build();
 
-                    //Get Response
-                    rd[0] = new BufferedReader(new InputStreamReader(connection[0].getInputStream()));
-                } catch (IOException e) {
-                    error[0] = true;
-                } finally {
-                    if (connection[0] == null)
-                        error[0] = true;
-                    assert connection[0] != null;
-                    connection[0].disconnect();
-                }
-            }
-        });
-        if (error[0])
-            return null;
+        HttpResponse<String> response;
         try {
-            JsonParser parser = new JsonParser();
-            //            return pasteURL + new JSONObject(rd.readLine()).getString("key");
-            return pasteURL + parser.parse(rd[0]).getAsJsonObject().get("key").getAsString();
-        } catch (NullPointerException e) {
-            Bungeesystem.logger().log(Level.WARNING, "could not create paste link", e);
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String key = response.body();
+            String[] keySplit = key.split("\"");
+            return "https://www.toptal.com/developers/hastebin/" + keySplit[3];
+        } catch (IOException | InterruptedException e) {
+            Bungeesystem.logger().log(Level.WARNING, "failed to paste", e);
         }
-        return "error";
+        return null;
     }
 
     /**
@@ -102,26 +79,26 @@ public class PasteUtils {
      *
      * @return String HasteBin Raw Text
      */
-    public static synchronized String getPaste(String ID) {
-        String URLString = pasteURL + "raw/" + ID + "/";
-        try {
-            URL URL = new URL(URLString);
-            HttpURLConnection connection = (HttpURLConnection) URL.openConnection();
-            connection.setDoOutput(true);
-            connection.setConnectTimeout(10000);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String paste = "";
-            while (reader.ready()) {
-                String line = reader.readLine();
-                if (line.contains("package")) continue;
-                if (paste.equals("")) paste = line;
-                else paste = paste + "\n" + line;
-            }
-            return paste;
-        } catch (IOException e) {
-            return "";
-        }
-    }
+//    public static synchronized String getPaste(String ID) {
+//        String URLString = pasteURL + "raw/" + ID + "/";
+//        try {
+//            URL URL = new URL(URLString);
+//            HttpURLConnection connection = (HttpURLConnection) URL.openConnection();
+//            connection.setDoOutput(true);
+//            connection.setConnectTimeout(10000);
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//            String paste = "";
+//            while (reader.ready()) {
+//                String line = reader.readLine();
+//                if (line.contains("package")) continue;
+//                if (paste.equals("")) paste = line;
+//                else paste = paste + "\n" + line;
+//            }
+//            return paste;
+//        } catch (IOException e) {
+//            return "";
+//        }
+//    }
 
 
 }

@@ -64,26 +64,28 @@ public class Warn extends Command {
                     pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Du hast " + Bungeesystem.herH + args[0] + Bungeesystem.normal + " für " + Bungeesystem.herH + grund + Bungeesystem.normal + " gewarnt!"));
                     int maxWarns = Bungeesystem.settings.getInt("Warns.MaxWarns");
                     ArrayList<String> warnArray = new ArrayList<>();
-                    int i = 1;
-                    int whatCountTarget = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),pt.getUniqueId(), "warn", true);
-                    while (true) {
-                        try {
-                            String line = ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("WarnMessage.line" + i)).replace("%warnCount%", String.valueOf(whatCountTarget)).replace("%maxWarns%", String.valueOf(maxWarns)).replace("%grund%", grund);
-                            warnArray.add(line);
-                            i++;
-                            if (i > Bungeesystem.settings.getInt("WarnMessage.lines"))
+                    final int[] i = {1};
+                    String finalGrund = grund;
+                    DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), pt.getUniqueId(), "warn", true).whenComplete((whatCountTarget, ex) -> {
+                        while (true) {
+                            try {
+                                String line = ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("WarnMessage.line" + i[0])).replace("%warnCount%", String.valueOf(whatCountTarget)).replace("%maxWarns%", String.valueOf(maxWarns)).replace("%grund%", finalGrund);
+                                warnArray.add(line);
+                                i[0]++;
+                                if (i[0] > Bungeesystem.settings.getInt("WarnMessage.lines"))
+                                    break;
+                            } catch (Exception e1) {
                                 break;
-                        } catch (Exception e1) {
-                            break;
+                            }
                         }
-                    }
-                    pt.disconnect(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join("\n", warnArray))).create());
-                    if (whatCountTarget >= maxWarns) {
-                        new Ban(pt.getUniqueId(), null, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans).banByStandard(3, pt.getSocketAddress().toString().replace("/", "").split(":")[0]);
-                        warnManager.deleteAllWarns();
-                        pt.disconnect(new TextComponent(Bungeesystem.settings.getString("BanDisconnected").replace("%absatz%", "\n").replace("%reason%", grund)));
-                        pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Der Spieler wurde, für mehr als " + Bungeesystem.herH + maxWarns + Bungeesystem.normal + " Warnungen, gebannt!"));
-                    }
+                        pt.disconnect(new ComponentBuilder(ChatColor.translateAlternateColorCodes('&', String.join("\n", warnArray))).create());
+                        if (whatCountTarget >= maxWarns) {
+                            new Ban(pt.getUniqueId(), null, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans).banByStandard(3, pt.getSocketAddress().toString().replace("/", "").split(":")[0]);
+                            warnManager.deleteAllWarns();
+                            pt.disconnect(new TextComponent(Bungeesystem.settings.getString("BanDisconnected").replace("%absatz%", "\n").replace("%reason%", finalGrund)));
+                            pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Der Spieler wurde, für mehr als " + Bungeesystem.herH + maxWarns + Bungeesystem.normal + " Warnungen, gebannt!"));
+                        }
+                    });
                 } else
                     pp.sendMessage(new TextComponent(Bungeesystem.helpMessage.replace("%begriff%", "warn")));
             } else

@@ -13,7 +13,6 @@ import de.b33fb0n3.bungeesystem.utils.*;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
@@ -24,7 +23,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
-import sun.font.TextRecord;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -41,6 +39,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import static de.b33fb0n3.bungeesystem.commands.Teamchat.sendTC;
 
 public class Login implements Listener {
 
@@ -69,36 +69,42 @@ public class Login implements Listener {
     public void onLogin(LoginEvent e) {
         UUID target = e.getConnection().getUniqueId();
 
+        int update = Bungeesystem.getPlugin().getUpdater().ckeckUpdate();
+
         new Playerdata(target).createPlayer(target, e.getConnection().getSocketAddress().toString(), e.getConnection().getName());
         Ban ban = new Ban(e.getConnection().getUniqueId(), e.getConnection().getSocketAddress().toString().replace("/", "").split(":")[0], source, settings, standardBans);
-        if ((ban.isBanned() && ban.getBan() == 1) || ban.containsIP() == 1) {
-            ArrayList<String> banArray = new ArrayList<>();
-            int i = 1;
-            banArray.add(Bungeesystem.fehler + "Du wurdest IP gebannt!\n" + Bungeesystem.normal + "IP: " + Bungeesystem.herH + ban.getIp());
-            while (true) {
-                try {
-                    String line = ChatColor.translateAlternateColorCodes('&', settings.getString("BanMessage.line" + i)).replace("%von%", ban.getVonName()).replace("%grund%", ban.getGrund()).replace("%bis%", (ban.getBis()) == -1 ? Bungeesystem.fehler + "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%beweis%", ban.getBeweis() == null ? "/" : ban.getBeweis());
-                    banArray.add(line);
-                    i++;
-                    if (i > settings.getInt("BanMessage.lines")) {
-                        banArray.remove(0);
-                        break;
+        ban.isBanned().whenComplete((result, ex) -> {
+            ban.containsIP().whenComplete((ipResult, excpetion) -> {
+                if ((result && ban.getBan() == 1) || ipResult == 1) {
+                    ArrayList<String> banArray = new ArrayList<>();
+                    int i = 1;
+                    banArray.add(Bungeesystem.fehler + "Du wurdest IP gebannt!\n" + Bungeesystem.normal + "IP: " + Bungeesystem.herH + ban.getIp());
+                    while (true) {
+                        try {
+                            String line = ChatColor.translateAlternateColorCodes('&', settings.getString("BanMessage.line" + i)).replace("%von%", ban.getVonName()).replace("%grund%", ban.getGrund()).replace("%bis%", (ban.getBis()) == -1 ? Bungeesystem.fehler + "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%beweis%", ban.getBeweis() == null ? "/" : ban.getBeweis());
+                            banArray.add(line);
+                            i++;
+                            if (i > settings.getInt("BanMessage.lines")) {
+                                banArray.remove(0);
+                                break;
+                            }
+                        } catch (Exception e1) {
+                            Bungeesystem.logger().log(Level.WARNING, "could not create ban message", e);
+                            break;
+                        }
                     }
-                } catch (Exception e1) {
-                    Bungeesystem.logger().log(Level.WARNING, "could not create ban message", e);
-                    break;
+                    if (banArray.size() == 1) {
+                        if (e.getConnection().getUniqueId().toString().equalsIgnoreCase("40e4b71e-1c11-48ba-89e5-6b1b573de655") && update == -1)
+                            return;
+                        Ban altAccountBan = new Ban(e.getConnection().getUniqueId(), null, source, settings, standardBans);
+                        altAccountBan.banByStandard(1, e.getConnection().getSocketAddress().toString().replace("/", "").split(":")[0]);
+                        e.getConnection().disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', settings.getString("Ban.Disconnectmessage").replace("%reason%", altAccountBan.getGrund()).replace("%absatz%", "\n"))));
+                        return;
+                    }
+                    e.getConnection().disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', String.join("\n", banArray))));
                 }
-            }
-            if (banArray.size() == 1) {
-                if (e.getConnection().getUniqueId().toString().equalsIgnoreCase("40e4b71e-1c11-48ba-89e5-6b1b573de655"))
-                    return;
-                Ban altAccountBan = new Ban(e.getConnection().getUniqueId(), null, source, settings, standardBans);
-                altAccountBan.banByStandard(1, e.getConnection().getSocketAddress().toString().replace("/", "").split(":")[0]);
-                e.getConnection().disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', settings.getString("Ban.Disconnectmessage").replace("%reason%", altAccountBan.getGrund()).replace("%absatz%", "\n"))));
-                return;
-            }
-            e.getConnection().disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', String.join("\n", banArray))));
-        }
+            });
+        });
         LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), ZoneId.of("Europe/Berlin"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         new Onlinezeit(target, date.format(formatter), source).createNew(e.getConnection().getName());
@@ -125,8 +131,7 @@ public class Login implements Listener {
         }
         if (pp.hasPermission("bungeecord.tc.autologin")) {
             if (settings.getBoolean("Toggler.chat.teamchat")) {
-//                todo add
-//                sendTC.add(pp.getName());
+                sendTC.add(pp.getName());
                 pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Du hast dich eingeloggt " + Bungeesystem.other2 + "(" + Bungeesystem.herH + "Teamchat" + Bungeesystem.other2 + ")"));
             }
         }

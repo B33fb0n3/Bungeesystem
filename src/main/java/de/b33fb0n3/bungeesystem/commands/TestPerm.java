@@ -20,12 +20,24 @@ public class TestPerm extends Command {
         super(name);
     }
 
+    private String input = "";
+
     @Override
     public void execute(CommandSender sender, String[] args) {
         int update = Bungeesystem.getPlugin().getUpdater().ckeckUpdate();
         if (update == -1) {
             if (sender instanceof ProxiedPlayer) {
                 final ProxiedPlayer pp = (ProxiedPlayer) sender;
+//                String[] array = input.split(",");
+//                int ups = 0;
+//                int lastone = 1000;
+//                for (String entry : array) {
+//                    if (Integer.parseInt(entry.trim()) > lastone) {
+//                        ups++;
+//                    }
+//                    lastone = Integer.parseInt(entry.trim());
+//                }
+//                pp.sendMessage("Ups: " + ups);
                 if (args.length == 1) {
                     pp.sendMessage(new TextComponent(Bungeesystem.Prefix + pp.hasPermission(args[0])));
                 } else

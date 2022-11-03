@@ -29,15 +29,20 @@ public class Unban extends Command {
         if (sender.hasPermission("bungeecord.unban") || sender.hasPermission("bungeecord.*")) {
             if (args.length == 1) {
                 UUID pt = UUIDFetcher.getUUID(args[0]);
-                if(pt == null) {
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler+"Dieser Spieler existiert nicht!"));
+                if (pt == null) {
+                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Dieser Spieler existiert nicht!"));
                     return;
                 }
                 Ban ban = new Ban(pt, null, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans);
-                if (ban.isBanned()) {
-                    ban.unban(true, sender instanceof ProxiedPlayer ? sender.getName() : "CONSOLE");
-                } else
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler+"Dieser Spieler ist nicht gebannt!"));
+                ban.isBanned().whenComplete((bannedResult, exception) -> {
+                    if (bannedResult) {
+                        ban.unban(true, sender instanceof ProxiedPlayer ? sender.getName() : "CONSOLE").whenComplete((result, ex) -> {
+                            if (!result)
+                                sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Ein Fehler ist aufgetreten!"));
+                        });
+                    } else
+                        sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Dieser Spieler ist nicht gebannt!"));
+                });
             } else
                 sender.sendMessage(new TextComponent(Bungeesystem.helpMessage.replace("%begriff%", "unban")));
         } else

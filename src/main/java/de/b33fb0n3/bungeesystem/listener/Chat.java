@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -110,28 +111,29 @@ public class Chat implements Listener {
                                 } else {
                                     int maxWarns = settings.getInt("Warns.MaxWarns");
                                     ArrayList<String> warnArray = new ArrayList<>();
-                                    int i = 1;
-                                    int whatCount = DBUtil.getWhatCount(source, pp.getUniqueId(), "warn", true);
-                                    while (true) {
-                                        try {
-                                            String line = ChatColor.translateAlternateColorCodes('&', settings.getString("WarnMessage.line" + i)).replace("%warnCount%", String.valueOf(whatCount + 1)).replace("%maxWarns%", String.valueOf(maxWarns)).replace("%grund%", "Wortwahl (" + badWord + ")");
-                                            warnArray.add(line);
-                                            i++;
-                                            if (i > settings.getInt("WarnMessage.lines"))
+                                    AtomicInteger i = new AtomicInteger(1);
+                                    DBUtil.getWhatCount(source, pp.getUniqueId(), "warn", true).whenComplete((whatCount, ex) -> {
+                                        while (true) {
+                                            try {
+                                                String line = ChatColor.translateAlternateColorCodes('&', settings.getString("WarnMessage.line" + i)).replace("%warnCount%", String.valueOf(whatCount + 1)).replace("%maxWarns%", String.valueOf(maxWarns)).replace("%grund%", "Wortwahl (" + badWord + ")");
+                                                warnArray.add(line);
+                                                i.getAndIncrement();
+                                                if (i.get() > settings.getInt("WarnMessage.lines"))
+                                                    break;
+                                            } catch (Exception e1) {
                                                 break;
-                                        } catch (Exception e1) {
-                                            break;
+                                            }
                                         }
-                                    }
-                                    WarnManager warnManager = new WarnManager(pp.getUniqueId(), UUIDFetcher.getUUID("PLUGIN"), "Wortwahl (" + badWord + ")", System.currentTimeMillis(), settings, source);
-                                    warnManager.addWarn();
-                                    pp.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', String.join("\n", warnArray))));
-                                    if (whatCount >= maxWarns) {
-                                        new Ban(pp.getUniqueId(), null, source, settings, standardBans).banByStandard(2, e.getSender().getSocketAddress().toString().replace("/", "").split(":")[0]);
-                                        warnManager.deleteAllWarns();
-                                        pp.disconnect(new TextComponent(settings.getString("BanDisconnected").replace("%absatz%", "\n").replace("%reason%", "Wortwahl (" + badWord + ")")));
-                                        pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Der Spieler wurde, für mehr als " + Bungeesystem.herH + maxWarns + Bungeesystem.normal + " Warnungen, gebannt!"));
-                                    }
+                                        WarnManager warnManager = new WarnManager(pp.getUniqueId(), UUIDFetcher.getUUID("PLUGIN"), "Wortwahl (" + badWord + ")", System.currentTimeMillis(), settings, source);
+                                        warnManager.addWarn();
+                                        pp.disconnect(new TextComponent(ChatColor.translateAlternateColorCodes('&', String.join("\n", warnArray))));
+                                        if (whatCount >= maxWarns) {
+                                            new Ban(pp.getUniqueId(), null, source, settings, standardBans).banByStandard(2, e.getSender().getSocketAddress().toString().replace("/", "").split(":")[0]);
+                                            warnManager.deleteAllWarns();
+                                            pp.disconnect(new TextComponent(settings.getString("BanDisconnected").replace("%absatz%", "\n").replace("%reason%", "Wortwahl (" + badWord + ")")));
+                                            pp.sendMessage(new TextComponent(Bungeesystem.Prefix + "Der Spieler wurde, für mehr als " + Bungeesystem.herH + maxWarns + Bungeesystem.normal + " Warnungen, gebannt!"));
+                                        }
+                                    });
                                 }
                                 for (final ProxiedPlayer current : ProxyServer.getInstance().getPlayers()) {
                                     if (current.hasPermission("bungeecord.blackWords.info") || current.hasPermission("bungeecord.*")) {
@@ -152,16 +154,23 @@ public class Chat implements Listener {
                     }
                 }
             }
+        final boolean[] retrun = new boolean[1];
         if (e.getSender() instanceof ProxiedPlayer) {
             Ban ban = new Ban(((ProxiedPlayer) e.getSender()).getUniqueId(), e.getSender().getSocketAddress().toString().replace("/", "").split(":")[0], source, settings, standardBans);
-            if (ban.isBanned()) {
-                if (ban.getBan() == 0 || ban.containsIP() == 0) {
-                    e.setCancelled(true);
-                    pp.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', settings.getString("MutedMessage").replace("%bis%", ban.getPerma() == 0 ? Bungeesystem.formatTime(ban.getBis()) : "Permanent").replace("%grund%", ban.getGrund()).replace("%absatz%", "\n"))));
-                    return;
+            ban.isBanned().whenComplete((result, ex) -> {
+                if (result) {
+                    ban.containsIP().whenComplete((ipResult, exception) -> {
+                        if (ban.getBan() == 0 || ipResult == 0) {
+                            e.setCancelled(true);
+                            pp.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', settings.getString("MutedMessage").replace("%bis%", ban.getPerma() == 0 ? Bungeesystem.formatTime(ban.getBis()) : "Permanent").replace("%grund%", ban.getGrund()).replace("%absatz%", "\n"))));
+                            retrun[0] = true;
+                        }
+                    });
                 }
-            }
+            });
         }
+        if (retrun[0])
+            return;
         String m = e.getMessage().trim();
         float uppercaseletters = 0;
 

@@ -44,10 +44,15 @@ public class Editban extends Command {
                     return;
                 }
                 Ban ban = new Ban(ut, null, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans);
-                if (!ban.isBanned()) {
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Der Spieler " + Bungeesystem.herH + args[0] + Bungeesystem.fehler + " ist nicht gebannt!"));
+                final boolean[] retrun = new boolean[1];
+                ban.isBanned().whenComplete((result, ex) -> {
+                   if(!result) {
+                       sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Der Spieler " + Bungeesystem.herH + args[0] + Bungeesystem.fehler + " ist nicht gebannt!"));
+                       retrun[0] = true;
+                   }
+                });
+                if(retrun[0])
                     return;
-                }
                 ProxiedPlayer pp = null;
                 if (sender instanceof ProxiedPlayer)
                     pp = (ProxiedPlayer) sender;

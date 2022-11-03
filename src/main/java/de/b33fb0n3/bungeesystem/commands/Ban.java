@@ -53,83 +53,91 @@ public class Ban extends Command {
                         }
                     }
                 }
-                int banid = 0;
-                try {
-                    banid = Integer.parseInt(args[1]);
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Gebe eine Zahl ein!"));
-                    return;
-                }
-                if (!Bungeesystem.ban.getSection("BanIDs").contains(banid + "")) {
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Diese ID existiert nicht!"));
-                    return;
-                }
-                String banIdPerm = Bungeesystem.ban.getString("BanIDs." + banid + ".Permission");
-                if (!banIdPerm.equals("")) {
-                    if (!sender.hasPermission("bungeecord.*")) {
-                        if (!sender.hasPermission(banIdPerm)) {
-                            sender.sendMessage(new TextComponent(Bungeesystem.noPerm + Bungeesystem.other2 + " (" + Bungeesystem.herH + banIdPerm + Bungeesystem.other2 + ")"));
-                            return;
-                        }
-                    }
-                }
-                String grund = Bungeesystem.ban.getString("BanIDs." + banid + ".Reason");
-                boolean perma = Bungeesystem.ban.getBoolean("BanIDs." + banid + ".Perma");
-                boolean ban = Bungeesystem.ban.getBoolean("BanIDs." + banid + ".Ban");
-                int permaint = 0;
-                int banint = 0;
-                if (perma) {
-                    permaint = 1;
-                }
-                if (ban) {
-                    banint = 1;
-                }
                 de.b33fb0n3.bungeesystem.utils.Ban currentBan = new de.b33fb0n3.bungeesystem.utils.Ban(ptUUID, null, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans);
-                if (currentBan.isBanned()) {
-                    if (currentBan.getBan() == 1 && !ban) {
-                        sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Wenn der Spieler gebannt ist bringt ein Mute auch nichts mehr!"));
+                currentBan.isBanned().whenComplete((result, ex) -> {
+                    int banid = 0;
+                    try {
+                        banid = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Gebe eine Zahl ein!"));
                         return;
                     }
-                    currentBan.unban(false, "PLUGIN"); // erstmal //
-                    // hier abfragen, ob er den aktuellen Ban verändern will?
-                }
-                DateUnit unit;
-                try {
-                    unit = DateUnit.valueOf((Bungeesystem.ban.getString("BanIDs." + banid + ".Format")).toUpperCase());
-                } catch (IllegalArgumentException | NullPointerException e) {
-                    sender.sendMessage(new TextComponent(Bungeesystem.herH + (Bungeesystem.ban.getString("BanIDs." + banid + ".Format")) + Bungeesystem.fehler + " ist keine gültiges Format!"));
-                    sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.normal + "Gültige Einheiten: "));
-                    for (DateUnit date : DateUnit.values()) {
-                        sender.sendMessage(new TextComponent(Bungeesystem.herH + date));
-                    }
-                    return;
-                }
-                long current = System.currentTimeMillis();
-                int time = Bungeesystem.ban.getInt("BanIDs." + banid + ".Time");
-                int banCount = (currentBan.getBanCount(grund, true) + 1);
-                long millis = 0;
-                double y = 0;
+                    String grund = Bungeesystem.ban.getString("BanIDs." + banid + ".Reason");
 
-                if (Bungeesystem.settings.getBoolean("Ban.permaafter3")) {
-                    if (banCount > 3)
-                        permaint = 1;
-                }
-                double pow = Math.pow(2, banCount);
-                y = time * pow;
-                if (banCount == 1)
-                    y = y - time;
-                millis = Math.round(y * (unit.getToSec() * 1000));
+                    int finalBanid = banid;
+                    currentBan.getBanCount(grund, true).whenComplete((banCountResult, exception) -> {
+                        if (!Bungeesystem.ban.getSection("BanIDs").contains(finalBanid + "")) {
+                            sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Diese ID existiert nicht!"));
+                            return;
+                        }
+                        String banIdPerm = Bungeesystem.ban.getString("BanIDs." + finalBanid + ".Permission");
+                        if (!banIdPerm.equals("")) {
+                            if (!sender.hasPermission("bungeecord.*")) {
+                                if (!sender.hasPermission(banIdPerm)) {
+                                    sender.sendMessage(new TextComponent(Bungeesystem.noPerm + Bungeesystem.other2 + " (" + Bungeesystem.herH + banIdPerm + Bungeesystem.other2 + ")"));
+                                    return;
+                                }
+                            }
+                        }
 
-                long unban = current + millis;
-                if (permaint == 1)
-                    unban = -1;
-                String beweis = "/";
-                ProxiedPlayer target = ProxyServer.getInstance().getPlayer(ptUUID);
-                if (args.length == 3) {
-                    beweis = args[2];
-                }
+                        boolean perma = Bungeesystem.ban.getBoolean("BanIDs." + finalBanid + ".Perma");
+                        boolean ban = Bungeesystem.ban.getBoolean("BanIDs." + finalBanid + ".Ban");
+                        int permaint = 0;
+                        int banint = 0;
+                        if (perma) {
+                            permaint = 1;
+                        }
+                        if (ban) {
+                            banint = 1;
+                        }
+                        if (result) {
+                            if (currentBan.getBan() == 1 && !ban) {
+                                sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Wenn der Spieler gebannt ist bringt ein Mute auch nichts mehr!"));
+                                return;
+                            }
+                            currentBan.unban(false, "PLUGIN"); // erstmal //
+                            // hier abfragen, ob er den aktuellen Ban verändern will?
+                        }
+                        DateUnit unit;
+                        try {
+                            unit = DateUnit.valueOf((Bungeesystem.ban.getString("BanIDs." + finalBanid + ".Format")).toUpperCase());
+                        } catch (IllegalArgumentException | NullPointerException e) {
+                            sender.sendMessage(new TextComponent(Bungeesystem.herH + (Bungeesystem.ban.getString("BanIDs." + finalBanid + ".Format")) + Bungeesystem.fehler + " ist keine gültiges Format!"));
+                            sender.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.normal + "Gültige Einheiten: "));
+                            for (DateUnit date : DateUnit.values()) {
+                                sender.sendMessage(new TextComponent(Bungeesystem.herH + date));
+                            }
+                            return;
+                        }
+                        long current = System.currentTimeMillis();
+                        int time = Bungeesystem.ban.getInt("BanIDs." + finalBanid + ".Time");
 
-                new de.b33fb0n3.bungeesystem.utils.Ban(ptUUID, sender.getName(), grund, System.currentTimeMillis(), unban, permaint, banint, target != null ? target.getSocketAddress().toString().replace("/", "").split(":")[0] : "NULL", beweis, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans);
+                        int banCount = (banCountResult + 1);
+                        long millis = 0;
+                        double y = 0;
+
+                        if (Bungeesystem.settings.getBoolean("Ban.permaafter3")) {
+                            if (banCount > 3)
+                                permaint = 1;
+                        }
+                        double pow = Math.pow(2, banCount);
+                        y = time * pow;
+                        if (banCount == 1)
+                            y = y - time;
+                        millis = Math.round(y * (unit.getToSec() * 1000));
+
+                        long unban = current + millis;
+                        if (permaint == 1)
+                            unban = -1;
+                        String beweis = "/";
+                        ProxiedPlayer target = ProxyServer.getInstance().getPlayer(ptUUID);
+                        if (args.length == 3) {
+                            beweis = args[2];
+                        }
+
+                        new de.b33fb0n3.bungeesystem.utils.Ban(ptUUID, sender.getName(), grund, System.currentTimeMillis(), unban, permaint, banint, target != null ? target.getSocketAddress().toString() : "NULL", beweis, Bungeesystem.getPlugin().getDataSource(), Bungeesystem.settings, Bungeesystem.standardBans);
+                    });
+                });
             } else {
                 if (Bungeesystem.settings.getBoolean("BanPlaceholder.aktive"))
                     sendBans(sender);

@@ -7,6 +7,7 @@ package de.b33fb0n3.bungeesystem.commands;
  * Licensed by B33fb0n3YT
  * © All rights reserved
  */
+
 import de.b33fb0n3.bungeesystem.Bungeesystem;
 import de.b33fb0n3.bungeesystem.utils.DBUtil;
 import de.b33fb0n3.bungeesystem.utils.HistoryElemt;
@@ -25,6 +26,8 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
 
 public class Bans extends Command {
@@ -61,63 +64,57 @@ public class Bans extends Command {
 
         UUID uuid = UUIDFetcher.getUUID(targetName);
         int zeilen = 10;
-        int allReports = DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(),uuid, "ban", true);
-        int allPages = allReports / zeilen;
-        int eineSeitePlus = seite + 1;
-        int eineSeiteMinus = seite - 1;
-        if (allReports % zeilen > 0) {
-            allPages++;
-        }
-
-        if (seite > allPages || seite == 0) {
-            pp.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Hier gibt es keine Bans!"));
-            return;
-        }
-        pp.sendMessage(new TextComponent(" "));
-        pp.sendMessage(new TextComponent(Bungeesystem.normal+"Bans von "+Bungeesystem.herH + targetName + " "+Bungeesystem.other2+"("+ Bungeesystem.herH + seite + Bungeesystem.other2+"/"+Bungeesystem.herH + allPages + Bungeesystem.other2+")"));
-//        TextComponent tc = new TextComponent();
-//        tc.setText(Main.normal+"Bans von "+Main.herH + targetName + " "+Main.other2+"("+ Main.herH + seite + Main.other2+"/"+Main.herH + allPages + Main.other2+")");
-//        TextComponent tc1 = new TextComponent();
-//        tc1.setText(" §8[§cLÖSCHE ALLE§8]");
-//        tc1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report delall " + targetName));
-//        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Lösche §4alle §7Reports §c(§7§lnicht rückgänging§c)").create()));
-//        tc.addExtra(tc1);
-//        pp.sendMessage(tc);
-
-        HistoryManager historyManager = new HistoryManager();
-        List<HistoryElemt> bans = historyManager.readHistory(uuid, zeilen, seite, "ban", false);
-        for(HistoryElemt ban : bans) {
-            TextComponent tc = new TextComponent();
-            tc.setText(Bungeesystem.Prefix);
-
-            TextComponent tc1 = new TextComponent();
-            tc1.setText(Bungeesystem.normal + ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Bans.Message").replace("%grund%", ban.getGrund()).replace("%wer%", UUIDFetcher.getName(ban.getTargetUUID())).replace("%von%", UUIDFetcher.getName(ban.getVonUUID())).replace("%time%", Bungeesystem.formatTime(ban.getErstellt())).replace("%bis%", ban.getPerma() == 1 ? "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%status%", ban.getBan() == 1 ? "Ban" : "Mute").replace("%aktiv%", DBUtil.timeExists(Bungeesystem.getPlugin().getDataSource(),ban.getErstellt()) ? Bungeesystem.normal+"✔" : Bungeesystem.fehler+"✖").replace("%entbanner%", ban.getVonEntbannt() == null ? "Keiner" : ban.getVonEntbannt())));
-            tc.addExtra(tc1);
-
-            TextComponent tc2 = new TextComponent();
-            tc2.setText(Bungeesystem.other2+"["+Bungeesystem.fehler+"MEHR"+Bungeesystem.other2+"]");
-
-            ArrayList<String> hoverArray = new ArrayList<>();
-            int i = 1;
-            while (true) {
-                try {
-                    String line = ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Bans.hover." + i).replace("%grund%", ban.getGrund()).replace("%wer%", UUIDFetcher.getName(ban.getTargetUUID())).replace("%von%", UUIDFetcher.getName(ban.getVonUUID())).replace("%time%", Bungeesystem.formatTime(ban.getErstellt())).replace("%bis%", ban.getPerma() == 1 ? "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%status%", ban.getBan() == 1 ? "Ban" : "Mute").replace("%aktiv%", DBUtil.timeExists(Bungeesystem.getPlugin().getDataSource(), ban.getErstellt()) ? Bungeesystem.normal+"✔" : Bungeesystem.fehler+"✖").replace("%entbanner%", ban.getVonEntbannt() == null ? "Keiner" : ban.getVonEntbannt()));
-                    hoverArray.add(line);
-                    i++;
-                    if (i > 7)
-                        break;
-                } catch (Exception e1) {
-                    break;
-                }
+        DBUtil.getWhatCount(Bungeesystem.getPlugin().getDataSource(), uuid, "ban", true).whenComplete((result, ex) -> {
+            int allReports = result;
+            int allPages = allReports / zeilen;
+            int eineSeitePlus = seite + 1;
+            int eineSeiteMinus = seite - 1;
+            if (allReports % zeilen > 0) {
+                allPages++;
             }
-            tc2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(String.join("\n", hoverArray))));
-            tc.addExtra(tc2);
 
-            pp.sendMessage(tc);
-            tc.getExtra().clear();
-        }
+            if (seite > allPages || seite == 0) {
+                pp.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Hier gibt es keine Bans!"));
+                return;
+            }
+            pp.sendMessage(new TextComponent(" "));
+            pp.sendMessage(new TextComponent(Bungeesystem.normal + "Bans von " + Bungeesystem.herH + targetName + " " + Bungeesystem.other2 + "(" + Bungeesystem.herH + seite + Bungeesystem.other2 + "/" + Bungeesystem.herH + allPages + Bungeesystem.other2 + ")"));
 
-        pfeile(eineSeiteMinus, eineSeitePlus, pp, targetName);
+            HistoryManager historyManager = new HistoryManager();
+            List<HistoryElemt> bans = historyManager.readHistory(uuid, zeilen, seite, "ban", false);
+            for (HistoryElemt ban : bans) {
+                TextComponent tc = new TextComponent();
+                tc.setText(Bungeesystem.Prefix);
+
+                TextComponent tc1 = new TextComponent();
+                tc1.setText(Bungeesystem.normal + ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Bans.Message").replace("%grund%", ban.getGrund()).replace("%wer%", UUIDFetcher.getName(ban.getTargetUUID())).replace("%von%", UUIDFetcher.getName(ban.getVonUUID())).replace("%time%", Bungeesystem.formatTime(ban.getErstellt())).replace("%bis%", ban.getPerma() == 1 ? "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%status%", ban.getBan() == 1 ? "Ban" : "Mute").replace("%aktiv%", (ban.getVonEntbannt() == null) ? Bungeesystem.normal + "✔" : Bungeesystem.fehler + "✖").replace("%entbanner%", ban.getVonEntbannt() == null ? "Keiner" : ban.getVonEntbannt())));
+                tc.addExtra(tc1);
+
+                TextComponent tc2 = new TextComponent();
+                tc2.setText(Bungeesystem.other2 + "[" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
+
+                ArrayList<String> hoverArray = new ArrayList<>();
+                int i = 1;
+                while (true) {
+                    try {
+                        String line = ChatColor.translateAlternateColorCodes('&', Bungeesystem.settings.getString("Bans.hover." + i).replace("%grund%", ban.getGrund()).replace("%wer%", UUIDFetcher.getName(ban.getTargetUUID())).replace("%von%", UUIDFetcher.getName(ban.getVonUUID())).replace("%time%", Bungeesystem.formatTime(ban.getErstellt())).replace("%bis%", ban.getPerma() == 1 ? "Permanent" : Bungeesystem.formatTime(ban.getBis())).replace("%status%", ban.getBan() == 1 ? "Ban" : "Mute").replace("%aktiv%", (ban.getVonEntbannt() == null) ? Bungeesystem.normal + "✔" : Bungeesystem.fehler + "✖").replace("%entbanner%", ban.getVonEntbannt() == null ? "Keiner" : ban.getVonEntbannt()));
+                        hoverArray.add(line);
+                        i++;
+                        if (i > 7)
+                            break;
+                    } catch (Exception e1) {
+                        break;
+                    }
+                }
+                tc2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(String.join("\n", hoverArray))));
+                tc.addExtra(tc2);
+
+                pp.sendMessage(tc);
+                tc.getExtra().clear();
+            }
+
+            pfeile(eineSeiteMinus, eineSeitePlus, pp, targetName);
+        });
     }
 
     private void pfeile(int eineSeiteMinus, int eineSeitePlus, ProxiedPlayer pp, String targetName) {
@@ -127,18 +124,18 @@ public class Bans extends Command {
         TextComponent tc1 = new TextComponent();
         tc1.setText("§f«« ");
         tc1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bans " + targetName + " " + eineSeiteMinus));
-        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: "+Bungeesystem.herH + eineSeiteMinus + "§8)")));
+        tc1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: " + Bungeesystem.herH + eineSeiteMinus + "§8)")));
         tc.addExtra(tc1);
 
         TextComponent tc2 = new TextComponent();
-        tc2.setText(Bungeesystem.other2+"["+Bungeesystem.fehler+"MEHR"+Bungeesystem.other2+"]");
+        tc2.setText(Bungeesystem.other2 + "[" + Bungeesystem.fehler + "MEHR" + Bungeesystem.other2 + "]");
         tc2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Bungeesystem.fehler + "Klick auf die Pfeile!")));
         tc.addExtra(tc2);
 
         TextComponent tc3 = new TextComponent();
         tc3.setText(" §f»»");
         tc3.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bans " + targetName + " " + eineSeitePlus));
-        tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: "+Bungeesystem.herH + eineSeitePlus + "§8)")));
+        tc3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§8(§7Seite: " + Bungeesystem.herH + eineSeitePlus + "§8)")));
         tc.addExtra(tc3);
 
         pp.sendMessage(tc);

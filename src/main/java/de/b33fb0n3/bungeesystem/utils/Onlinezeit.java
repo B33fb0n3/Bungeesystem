@@ -125,17 +125,42 @@ public class Onlinezeit {
         }
     }
 
-    public void sendTrend(java.util.UUID from, int lastDays, boolean consoleConform) {
+    private HashMap<String, Long> getLastXDays(ArrayList<String> dayStrings, UUID from) {
+        HashMap<String, Long> times = new HashMap<>();
+        LinkedHashMap<String, Long> zeiten = new LinkedHashMap<>();
+        String startSQL = "SELECT * FROM onlinetime WHERE UUID=? AND (Datum=?";
+        StringBuilder dates = new StringBuilder();
+        for (int i = 1; i < dayStrings.size(); i++) {
+            dates.append(" OR Datum=?");
+        }
+        String finishSQL = startSQL + dates + ")";
+        try (Connection conn = getSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement(finishSQL)) {
+            ps.setString(1, from.toString());
+            for (int i = 2; i <= dayStrings.size() + 1; i++) {
+                ps.setString(i, dayStrings.get(i - 2));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                times.put(rs.getString("Datum"), rs.getLong("onlinezeit"));
+            }
+        } catch (SQLException e) {
+            Bungeesystem.logger().log(Level.WARNING, "could not get lastXdays", e);
+        }
+        for (String dayString : dayStrings) {
+            zeiten.put(dayString, times.getOrDefault(dayString, 0L));
+        }
+        return zeiten;
+    }
+
+    public void sendTrend(UUID from, int lastDays, boolean consoleConform) {
         sendTrend(from, lastDays, consoleConform, "");
     }
 
-    public void sendTrend(java.util.UUID from, int lastDays, boolean consoleConform, String text) {
+    public void sendTrend(UUID from, int lastDays, boolean consoleConform, String text) {
         double yQuer, tQuer, b, tyt = 0, T, t2 = 0, tQuer2, a, mQuer;
 
-        ArrayList<Long> perDay = new ArrayList<>();
-        for (int i = 0; i <= (lastDays - 1); i++) {
-            perDay.add(i, 1L);
-        }
+        ArrayList<String> dayStrings = new ArrayList<>();
         HashMap<Integer, Long> onlineInMS = new HashMap<>();
         long prognose;
         long sumX = 0L;
@@ -149,9 +174,14 @@ public class Onlinezeit {
             LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(dayBefore), ZoneId.of("Europe/Berlin"));
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String dayBeforeString = date.format(formatter);
-            perDay.remove(counter - 1);
-            perDay.add(counter - 1, getMsPerDay(dayBeforeString, from.toString()));
+            dayStrings.add(dayBeforeString);
+            counter--;
+        }
 
+        ArrayList<Long> perDay = new ArrayList<>(getLastXDays(dayStrings, from).values());
+        Collections.reverse(perDay);
+        counter = lastDays;
+        for (int i = 1; i <= lastDays; i++) {
             onlineInMS.put(i, perDay.get(counter - 1));
             sumY += perDay.get(counter - 1);
             sumX += i;
@@ -159,6 +189,7 @@ public class Onlinezeit {
             t2 = t2 + Math.pow(i, 2);
             counter--;
         }
+
         yQuer = (double) sumY / perDay.size();
         tQuer = (double) sumX / lastDays;
         T = lastDays;
@@ -205,6 +236,8 @@ public class Onlinezeit {
     }
 
     public void sendWeek(String fromUUID, boolean consoleConform) {
+        if (1 > 0)
+            return;
         // consoleConform steht dafür, ob es denn für die Console extra ausgegeben werden soll (wegen Textcomponent usw.)
         long currentTS = System.currentTimeMillis();
         long aDay = 86400000L;
@@ -531,7 +564,7 @@ public class Onlinezeit {
             }
             nameToTime = sortByValue(false, nameToTime);
             int count = 3;
-            if(nameToTime.size() < 3)
+            if (nameToTime.size() < 3)
                 count = nameToTime.size();
             for (int i = 0; i < count; i++) {
                 TextComponent tc = new TextComponent();
