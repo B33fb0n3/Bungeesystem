@@ -64,7 +64,7 @@ public class Bungeesystem extends Plugin {
     private HashMap<UUID, Long> allOnlineTimeToday = new HashMap<>();
     private Updater updater;
     private List<String> sendReports = new ArrayList<>();
-    public HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
+    private HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
     public ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
     public static Logger logger() {
@@ -223,7 +223,7 @@ public class Bungeesystem extends Plugin {
         }
 
         if (settings.getBoolean("Toggler.support"))
-            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Support("support"));
+            ProxyServer.getInstance().getPluginManager().registerCommand(this, new Support("support", activechats));
     }
 
     @Override

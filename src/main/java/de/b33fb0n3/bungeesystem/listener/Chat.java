@@ -25,6 +25,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -57,7 +58,7 @@ public class Chat implements Listener {
     private HashMap<String, String> lastMessage = new HashMap<>();
     private List<String> badWords;
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(ChatEvent e) {
         if (e.getMessage().startsWith("/"))
             return;
@@ -72,12 +73,10 @@ public class Chat implements Listener {
                 e.setCancelled(true);
                 return;
             }
-
         if (settings.getBoolean("Toggler.chat.spam"))
             if (!pp.hasPermission("bungeecord.*"))
                 if (!pp.hasPermission("bungeecord.spam.bypass"))
                     spamCooldown.put(pp.getName(), System.currentTimeMillis() + random(500, 3000));
-
         if (lastMessage.get(pp.getName()) != null) {
             if (lastMessage.get(pp.getName()).contains(e.getMessage())) {
                 pp.sendMessage(new TextComponent(Bungeesystem.Prefix + Bungeesystem.fehler + "Du darfst die Nachricht nicht nochmal senden!"));

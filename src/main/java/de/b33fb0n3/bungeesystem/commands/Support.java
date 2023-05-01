@@ -13,7 +13,6 @@ import de.b33fb0n3.bungeesystem.utils.Cooldowns;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
@@ -25,11 +24,11 @@ import java.util.LinkedHashMap;
 
 public class Support extends Command {
 
-    public Support(String name) {
+    public Support(String name, HashMap<ProxiedPlayer, ProxiedPlayer> activechats) {
         super(name);
+        this.activechats = activechats;
     }
-
-    public static HashMap<ProxiedPlayer, ProxiedPlayer> activechats = new HashMap<>();
+    private HashMap<ProxiedPlayer, ProxiedPlayer> activechats;
     private static LinkedHashMap<ProxiedPlayer, String> waitingForSupport = new LinkedHashMap<>();
 
     @Override
